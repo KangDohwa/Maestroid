@@ -7,6 +7,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
+import brandIcon from '@renderer/assets/logos/brand/maestroid-icon-32.svg';
+import wordmarkDark from '@renderer/assets/logos/brand/maestroid-wordmark-dark.svg';
+import wordmarkLight from '@renderer/assets/logos/brand/maestroid-wordmark-light.svg';
 
 // Mirror the project convention: t() echoes the key so labels/tooltips are assertable.
 vi.mock('react-i18next', () => ({
@@ -24,6 +27,12 @@ const shortcutMocks = vi.hoisted(() => ({
 }));
 const featureMocks = vi.hoisted(() => ({
   teamModeEnabled: false,
+}));
+const themeMocks = vi.hoisted(() => ({
+  theme: 'light' as 'light' | 'dark',
+}));
+vi.mock('@renderer/hooks/context/ThemeContext', () => ({
+  useThemeContext: () => ({ theme: themeMocks.theme }),
 }));
 vi.mock('react-router-dom', () => ({
   useNavigate: () => navigate,
@@ -96,6 +105,7 @@ describe('Layout sider brand Home button', () => {
     platformMocks.isElectronDesktopMock.mockReturnValue(false);
     shortcutMocks.params = undefined;
     featureMocks.teamModeEnabled = false;
+    themeMocks.theme = 'light';
     sessionStorage.clear();
     currentPathname = '/guid';
   });
@@ -159,7 +169,7 @@ describe('Layout sider brand Home button', () => {
 
     // No actionable role/label in chat routes.
     expect(screen.queryByLabelText(BACK_KEY)).toBeNull();
-    const wordmark = screen.getByText('AionUi');
+    const wordmark = screen.getByRole('img', { name: 'login.brand' });
     fireEvent.click(wordmark);
     expect(navigate).not.toHaveBeenCalled();
   });
@@ -168,7 +178,7 @@ describe('Layout sider brand Home button', () => {
     currentPathname = '/conversation/xyz';
     renderLayout();
 
-    fireEvent.click(screen.getByText('AionUi'));
+    fireEvent.click(screen.getByRole('img', { name: 'login.brand' }));
     expect(navigate).not.toHaveBeenCalled();
   });
 
@@ -201,12 +211,23 @@ describe('Layout sider brand Home button', () => {
     sessionStorage.setItem('aion:last-non-settings-path', '/conversation/abc');
     const { container } = renderLayout();
 
-    // The icon is the SVG-wrapping div (bg-black), separate from the wordmark.
-    const icon = container.querySelector('.bg-black') as HTMLElement;
+    // The Baton icon keeps its separate devtools target beside the wordmark.
+    const icon = container.querySelector('.layout-sider-header > div:first-child') as HTMLElement;
     expect(icon).toBeTruthy();
+    expect(icon.querySelector('img')).toHaveAttribute('src', brandIcon);
     for (let i = 0; i < 4; i++) fireEvent.click(icon);
     expect(openDevTools).toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['light', wordmarkLight],
+    ['dark', wordmarkDark],
+  ] as const)('uses the approved wordmark for the %s theme', (theme, expectedLogo) => {
+    themeMocks.theme = theme;
+    renderLayout();
+
+    expect(screen.getByRole('img', { name: 'login.brand' })).toHaveAttribute('src', expectedLogo);
   });
 
   it('opens the update notification directly for tray update checks', () => {
