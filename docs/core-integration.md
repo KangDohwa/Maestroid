@@ -2,6 +2,10 @@
 
 작성일: 2026-10-05. 상태: 저장소 설정 완료, 코드 연결 전 조사·설계.
 
+현재 구현 갱신: `feat/maestroid-foundation`부터 패키징 기본 다운로드 저장소는 **KangDohwa/Maestroid-Core**다. `AIONUI_BACKEND_GITHUB_OWNER` / `AIONUI_BACKEND_GITHUB_REPO`로 명시적으로 변경할 수 있으며, 원본 AionCore로 자동 폴백하지 않는다. `AIONUI_BACKEND_LOCAL_BUNDLE_DIR`가 지정되면 바이너리·managed-resources·manifest가 빠진 입력을 네트워크 조회나 기존 번들 삭제 전에 거부한다. 입력 번들은 출력 폴더 밖에 둔다.
+
+첫 Fork 태그·릴리스가 아직 없어 `aioncoreVersion: v0.2.2`는 유지한다. 개발 실행의 `AIONUI_BACKEND_BIN`과 완성된 로컬 번들 경로를 사용하고, 실제 Fork 릴리스 게시 후 pin을 맞춘다. 아래 조사 기록의 원본 다운로드 상수·Git 상태·미실행 표기는 최초 작성 시점의 스냅샷이다.
+
 Maestroid는 별도 사용자 Fork인 **Maestroid-Core**를 개발·패키징 대상으로 사용한다. 초기 기준은 UI `v2.2.2`가 지정한 Core `v0.2.2`다. 기존 환경변수로 로컬 빌드 산출물을 연결할 수 있지만, 현재 앱 코드는 여전히 원본 AionCore 릴리스 다운로드를 기본으로 한다. 이번 작업에서는 Git 설정과 이 문서만 변경했다.
 
 이 문서는 로컬 참고 자료(저장소 미포함)인 `docs/research/aionui-and-quota.md`와 `docs/research/aionui-team-creation.md`, 그리고 [UI upstream 기록](UPSTREAM.md)을 참고했다. 로컬 팀 조사 문서 9절의 “원본 Core 바이너리 유지”는 이전 결정이며, 이번 Core Fork 연동 지시가 이를 대체한다.

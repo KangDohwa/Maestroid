@@ -2,9 +2,9 @@
  * Prepare aioncore binary for packaging.
  *
  * Resolution order:
- *  1. GitHub Actions artifact download when AIONUI_BACKEND_RUN_ID is set
- *  2. GitHub release download (requires version or defaults to "latest")
- *  3. Complete local bundle from AIONUI_BACKEND_LOCAL_BUNDLE_DIR
+ *  1. Explicit complete local bundle from AIONUI_BACKEND_LOCAL_BUNDLE_DIR
+ *  2. GitHub Actions artifact download when AIONUI_BACKEND_RUN_ID is set
+ *  3. GitHub release download (requires version or defaults to "latest")
  *  4. Local binary fallback from AIONUI_BACKEND_LOCAL_BINARY
  *
  * Output: {projectRoot}/resources/bundled-aioncore/{platform}-{arch}/
@@ -21,8 +21,18 @@ const os = require('os');
 const path = require('path');
 const { verifyBundledAioncoreResources } = require('./verify-bundled-aioncore-resources');
 
-const GITHUB_OWNER = 'iOfficeAI';
-const GITHUB_REPO = 'AionCore';
+const GITHUB_OWNER = 'KangDohwa';
+const GITHUB_REPO = 'Maestroid-Core';
+
+/** Resolve an explicitly configured source without falling back to upstream. */
+function getGithubRepository() {
+  const owner = (process.env.AIONUI_BACKEND_GITHUB_OWNER || GITHUB_OWNER).trim();
+  const repo = (process.env.AIONUI_BACKEND_GITHUB_REPO || GITHUB_REPO).trim();
+  if (!/^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(owner) || !/^[a-zA-Z0-9_.-]+$/.test(repo)) {
+    throw new Error('Invalid AionCore GitHub owner/repo configuration');
+  }
+  return `${owner}/${repo}`;
+}
 
 const ACTIONS_ARTIFACT_TARGETS = {
   'darwin-arm64': {
@@ -163,7 +173,7 @@ function resolveLatestTag() {
 
   // 1. Try gh CLI (honours GH_TOKEN automatically)
   try {
-    const out = execSync(`gh api repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest --jq .tag_name`, {
+    const out = execSync(`gh api repos/${getGithubRepository()}/releases/latest --jq .tag_name`, {
       encoding: 'utf-8',
       timeout: 15000,
     }).trim();
@@ -175,7 +185,7 @@ function resolveLatestTag() {
   // 2. Curl with optional token to avoid rate-limit 403
   try {
     const authArgs = token ? ['-H', `Authorization: token ${token}`] : [];
-    const args = ['-fsSL', ...authArgs, `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases/latest`];
+    const args = ['-fsSL', ...authArgs, `https://api.github.com/repos/${getGithubRepository()}/releases/latest`];
     const out = execFileSync('curl', args, { encoding: 'utf-8', timeout: 15000 });
     const tag = JSON.parse(out).tag_name;
     if (tag) return tag;
@@ -206,8 +216,9 @@ function getAssetName(platform, arch, tag) {
   return `aioncore-${tag}-${normalizedArch}-${normalizedPlatform}${ext}`;
 }
 
+/** Build a release asset URL for the explicitly configured Core repository. */
 function getDownloadUrl(assetName, tag) {
-  return `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/releases/download/${tag}/${assetName}`;
+  return `https://github.com/${getGithubRepository()}/releases/download/${tag}/${assetName}`;
 }
 
 function downloadFile(url, outputPath) {
@@ -333,9 +344,7 @@ function downloadFileWithAuth(url, outputPath) {
 }
 
 function listActionsArtifacts(runId) {
-  const response = githubApiGetJson(
-    `repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/runs/${runId}/artifacts?per_page=100`
-  );
+  const response = githubApiGetJson(`repos/${getGithubRepository()}/actions/runs/${runId}/artifacts?per_page=100`);
   return Array.isArray(response?.artifacts) ? response.artifacts : [];
 }
 
@@ -373,7 +382,7 @@ function downloadAndExtractActionsArtifact(platform, arch, runId) {
 
   const downloadUrl =
     artifact.archive_download_url ||
-    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/actions/artifacts/${artifact.id}/zip`;
+    `https://api.github.com/repos/${getGithubRepository()}/actions/artifacts/${artifact.id}/zip`;
   console.log(`  Downloading aioncore from AionCore run ${runId} artifact ${expectedArtifactName}`);
   downloadFileWithAuth(downloadUrl, artifactZipPath);
   extractArchive(artifactZipPath, artifactExtractDir, platform);
@@ -444,24 +453,50 @@ function prepareAioncore(options) {
   const { projectRoot, platform, arch, version = 'latest' } = options;
   const runtimeKey = `${platform}-${arch}`;
   const actionsRunId = (process.env.AIONUI_BACKEND_RUN_ID || '').trim();
+  const localBundleDir = (process.env.AIONUI_BACKEND_LOCAL_BUNDLE_DIR || '').trim();
+  const resolvedLocalBundleDir = localBundleDir ? path.resolve(localBundleDir) : null;
+  const binaryName = getBinaryName(platform);
+  const targetDir = path.join(projectRoot, 'resources', 'bundled-aioncore', runtimeKey);
+
+  // Validate explicit input before network access or removing an existing bundle.
+  if (resolvedLocalBundleDir) {
+    for (const [entry, isDirectory] of [
+      [binaryName, false],
+      ['managed-resources', true],
+      [path.join('managed-resources', 'manifest.json'), false],
+    ]) {
+      const inputPath = path.join(resolvedLocalBundleDir, entry);
+      if (
+        !fs.existsSync(inputPath) ||
+        (isDirectory ? !fs.statSync(inputPath).isDirectory() : !fs.statSync(inputPath).isFile())
+      ) {
+        throw new Error(`Local aioncore bundle is incomplete or missing: ${inputPath}. Refusing download fallback.`);
+      }
+    }
+    const relativeInput = path.relative(targetDir, resolvedLocalBundleDir);
+    if (
+      !relativeInput ||
+      (!relativeInput.startsWith(`..${path.sep}`) && relativeInput !== '..' && !path.isAbsolute(relativeInput))
+    ) {
+      throw new Error('Local aioncore bundle must be outside the output directory');
+    }
+  }
 
   let tag = null;
   if (!actionsRunId) {
     // Resolve the actual version tag — release asset filenames include the tag.
-    if (version === 'latest') {
+    if (version === 'latest' && !resolvedLocalBundleDir) {
       const resolved = resolveLatestTag();
       if (!resolved) {
         throw new Error('Failed to resolve latest aioncore release tag from GitHub API');
       }
       tag = resolved;
       console.log(`Resolved aioncore "latest" → ${tag}`);
-    } else {
+    } else if (version !== 'latest') {
       tag = version.startsWith('v') ? version : `v${version}`;
     }
   }
 
-  const targetDir = path.join(projectRoot, 'resources', 'bundled-aioncore', runtimeKey);
-  const binaryName = getBinaryName(platform);
   const targetBinaryPath = path.join(targetDir, binaryName);
 
   console.log(
@@ -471,9 +506,7 @@ function prepareAioncore(options) {
   removeDirectorySafe(targetDir);
   ensureDirectory(targetDir);
 
-  const localBundleDir = (process.env.AIONUI_BACKEND_LOCAL_BUNDLE_DIR || '').trim();
-  if (localBundleDir) {
-    const resolvedLocalBundleDir = path.resolve(localBundleDir);
+  if (resolvedLocalBundleDir) {
     const localBinaryPath = path.join(resolvedLocalBundleDir, binaryName);
     const localManagedResourcesDir = path.join(resolvedLocalBundleDir, 'managed-resources');
     if (
@@ -487,7 +520,7 @@ function prepareAioncore(options) {
       const manifest = {
         platform,
         arch,
-        version: tag || `actions-run-${actionsRunId}` || 'local-bundle',
+        version: tag || (actionsRunId ? `actions-run-${actionsRunId}` : 'local-bundle'),
         generatedAt: new Date().toISOString(),
         sourceType: 'local-bundle',
         source: { path: resolvedLocalBundleDir },
@@ -498,7 +531,9 @@ function prepareAioncore(options) {
       console.log(`  Using local aioncore bundle: ${resolvedLocalBundleDir}`);
       return { prepared: true, dir: targetDir, sourceType: 'local-bundle' };
     }
-    console.warn(`  Local aioncore bundle is incomplete or missing: ${resolvedLocalBundleDir}`);
+    throw new Error(
+      `Local aioncore bundle is incomplete or missing: ${resolvedLocalBundleDir}. Refusing download fallback.`
+    );
   }
 
   let sourcePath = null;
@@ -584,6 +619,7 @@ function prepareAioncore(options) {
 }
 
 module.exports = {
+  getDownloadUrl,
   getActionsArtifactMissingMessage,
   getActionsArtifactName,
   prepareAioncore,
