@@ -9,6 +9,9 @@ import { Github, Right } from '@icon-park/react';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
+import lockupDark from '@renderer/assets/logos/brand/maestroid-lockup-dark.svg';
+import lockupLight from '@renderer/assets/logos/brand/maestroid-lockup-light.svg';
+import { useThemeContext } from '@renderer/hooks/context/ThemeContext';
 import { useSettingsViewMode } from '../settingsViewContext';
 import { isElectronDesktop, openExternalUrl } from '@/renderer/utils/platform';
 import FeedbackReportModal from './FeedbackReportModal';
@@ -36,6 +39,7 @@ type LinkItem =
 
 const AboutModalContent: React.FC = () => {
   const { t } = useTranslation();
+  const { theme } = useThemeContext();
   const viewMode = useSettingsViewMode();
   const isPageMode = viewMode === 'page';
   const isElectron = isElectronDesktop();
@@ -117,7 +121,7 @@ const AboutModalContent: React.FC = () => {
     },
     {
       title: t('settings.updateLog'),
-      url: 'https://github.com/iOfficeAI/AionUi/releases',
+      url: 'https://github.com/KangDohwa/Maestroid/releases',
       icon: <Right theme='outline' size='16' className='rtl-mirror' />,
     },
     {
@@ -150,7 +154,11 @@ const AboutModalContent: React.FC = () => {
           {/* App Info Section */}
           <div className='flex flex-col items-center pb-24px'>
             <Typography.Title heading={3} className='text-24px font-bold text-t-primary mb-8px'>
-              AionUi
+              <img
+                src={theme === 'dark' ? lockupDark : lockupLight}
+                alt={t('login.brand')}
+                className='h-64px w-auto max-w-full object-contain'
+              />
             </Typography.Title>
             <Typography.Text className='text-14px text-t-secondary mb-12px text-center'>
               {t('settings.appDescription')}
@@ -162,7 +170,7 @@ const AboutModalContent: React.FC = () => {
               <div
                 className='text-t-primary cursor-pointer hover:text-t-secondary transition-colors p-4px'
                 onClick={() =>
-                  openLink('https://github.com/iOfficeAI/AionUi').catch((error) =>
+                  openLink('https://github.com/KangDohwa/Maestroid').catch((error) =>
                     console.error('Failed to open link:', error)
                   )
                 }

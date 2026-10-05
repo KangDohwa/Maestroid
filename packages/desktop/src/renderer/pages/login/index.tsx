@@ -1,4 +1,5 @@
-import loginLogo from '@renderer/assets/logos/brand/app.png';
+import loginLogo from '@renderer/assets/logos/brand/maestroid-icon-master-1024.svg';
+import loginWordmark from '@renderer/assets/logos/brand/maestroid-wordmark-light.svg';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '@/renderer/services/i18n';
@@ -217,9 +218,11 @@ const LoginPage: React.FC = () => {
 
         <div className='login-page__header'>
           <div className='login-page__logo'>
-            <img src={loginLogo} alt={t('login.brand')} />
+            <img src={loginLogo} alt='' />
           </div>
-          <h1 className='login-page__title'>{t('login.brand')}</h1>
+          <h1 className='login-page__title'>
+            <img src={loginWordmark} alt={t('login.brand')} className='h-48px w-auto object-contain' />
+          </h1>
           <p className='login-page__subtitle'>{t('login.subtitle')}</p>
         </div>
 

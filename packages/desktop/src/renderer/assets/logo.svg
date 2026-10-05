@@ -1,8 +1,1 @@
-<svg class="w-5.5 h-5.5 absolute inset-0 m-auto" viewBox="0 0 80 80" fill="none">
-                            <!-- 上方的"^"代表A - 更圆润的线条 -->
-                            <path d="M40 20 Q38 22 25 40 Q23 42 26 42 L30 42 Q32 40 40 30 Q48 40 50 42 L54 42 Q57 42 55 40 Q42 22 40 20" fill="white"></path>
-                            <!-- 中间的"."代表i - 中心圆点 -->
-                            <circle cx="40" cy="46" r="3" fill="white"></circle>
-                            <!-- 下方的弧线代表UI - 更圆润的底部弧线 -->
-                            <path d="M18 50 Q40 70 62 50" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"></path>
-                        </svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="1024" height="1024"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E2775"/><stop offset="1" stop-color="#120E2B"/></linearGradient></defs><rect width="128" height="128" rx="28" fill="url(#g)"/><path d="M26 70C32 38 66 18 104 36" fill="none" stroke="#8B7CFF" stroke-width="6" stroke-linecap="round" opacity=".45"/><path d="M36 74C42 50 66 36 96 46" fill="none" stroke="#8B7CFF" stroke-width="6" stroke-linecap="round"/><path d="M34 100L90 44" stroke="#F4F1FF" stroke-width="8" stroke-linecap="round"/><circle cx="31" cy="103" r="9" fill="#FFD27A"/><circle cx="94" cy="40" r="6" fill="#FFD27A"/></svg>
