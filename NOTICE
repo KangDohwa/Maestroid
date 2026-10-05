@@ -12,8 +12,10 @@ v2.2.2, commit 6744099b279b991c17e31c243f0920477bd31cb6
 Maestroid modifications include application and package metadata, installer
 identity, the maestroid URI scheme, isolated desktop/WebUI data directories,
 removal of automatic legacy AionUi data import, disabled update checks and
-installation, and localized application/window titles. Icon and logo assets
-have not been replaced in this initial rebranding pass.
+installation, localized application/window titles, and the Maestroid Baton
+application icons and theme-specific logos.
+
+The outlined Maestroid wordmark uses Lora Bold by The Lora Project Authors (https://github.com/cyrealtype/Lora-Cyrillic), licensed under SIL Open Font License 1.1 (https://openfontlicense.org).
 
 The application retains the unmodified AionCore v0.2.2 backend dependency:
 https://github.com/iOfficeAI/AionCore
