@@ -18,7 +18,8 @@ const { verifyBundledAioncoreResources } = require('../packages/shared-scripts/s
 function resolveResourcesDir(electronPlatformName, appOutDir, packager) {
   if (electronPlatformName !== 'darwin') return path.join(appOutDir, 'resources');
 
-  const appName = packager?.appInfo?.productFilename || 'AionUi';
+  // Modified for Maestroid: keep the fallback executable name in sync with the builder.
+  const appName = packager?.appInfo?.productFilename || 'Maestroid';
   return path.join(appOutDir, `${appName}.app`, 'Contents', 'Resources');
 }
 

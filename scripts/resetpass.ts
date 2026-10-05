@@ -2,6 +2,7 @@
 /**
  * @license
  * Copyright 2025 AionUi (aionui.com)
+ * Modified for Maestroid: reset only the fork's default WebUI data.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Pure Node/Bun CLI — resets the WebUI admin password for the standalone
@@ -63,7 +64,7 @@ function getFlag(name: string): string | undefined {
 /**
  * Same resolution as scripts/webui.ts:resolveBackendDataDir — keep both in sync
  * so `bun run webui` and `bun run resetpass` always target the same SQLite DB.
- * See the comment there for why the default is `~/.aionui-web*` (not `~/.aionui*`).
+ * See the comment there for why the default is `~/.maestroid-web*` (not `~/.maestroid*`).
  */
 function resolveWorkDir(): string {
   const override = getFlag('--data-dir') ?? process.env.AIONUI_DATA_DIR;
@@ -74,7 +75,7 @@ function resolveWorkDir(): string {
   }
   const suffix =
     process.env.NODE_ENV === 'production' ? '' : process.env.AIONUI_MULTI_INSTANCE === '1' ? '-dev-2' : '-dev';
-  const dir = path.join(os.homedir(), `.aionui-web${suffix}`);
+  const dir = path.join(os.homedir(), `.maestroid-web${suffix}`);
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }

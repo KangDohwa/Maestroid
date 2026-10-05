@@ -2,6 +2,7 @@
  * @license
  * Copyright 2025 AionUi (aionui.com)
  * SPDX-License-Identifier: Apache-2.0
+ * Modified for Maestroid: isolate application data and registry cleanup.
  */
 
 import { app } from 'electron';
@@ -26,18 +27,14 @@ if (e2eUserDataDir && e2eUserDataDir.trim() !== '') {
 }
 
 // ============ Environment Separation ============
-// Set app name before any getPath() call so userData is isolated from production.
+// Set the Maestroid name and data path before storage initialization.
 // Note: getPlatformServices() auto-registration also applies this as a safety net
 // in case Rollup loads initStorage's chunk before this module runs.
-// 开发模式下设置独立 app 名称，userData 目录将与正式版隔离，允许同时运行
-// E2E 沙箱已显式设置 userData 时跳过，避免被 dev app 名覆盖。
-if (!app.isPackaged && !e2eUserDataDir) {
-  const devAppName = getDevAppName();
-  app.setName(devAppName);
-  // In Electron 28+, setName alone no longer updates userData path on macOS.
-  // Explicitly override userData to the dev directory.
-  const appSupportDir = path.dirname(app.getPath('userData'));
-  app.setPath('userData', path.join(appSupportDir, devAppName));
+// Preserve explicit E2E sandboxes; release and dev builds use separate paths.
+const appName = app.isPackaged ? 'Maestroid' : getDevAppName();
+app.setName(appName);
+if (!e2eUserDataDir || e2eUserDataDir.trim() === '') {
+  app.setPath('userData', path.join(app.getPath('appData'), appName));
 }
 
 // app.disableHardwareAcceleration() must run before app is ready.
@@ -143,7 +140,7 @@ export interface CdpStatus {
  */
 function removeLegacyCdpRegistryFile(): void {
   try {
-    const legacyRegistry = path.join(os.homedir(), '.aionui-cdp-registry.json');
+    const legacyRegistry = path.join(os.homedir(), '.maestroid-cdp-registry.json');
     if (fs.existsSync(legacyRegistry)) {
       fs.unlinkSync(legacyRegistry);
     }

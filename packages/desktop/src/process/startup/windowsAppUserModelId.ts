@@ -2,6 +2,7 @@
  * @license
  * Copyright 2025 AionUi (aionui.com)
  * SPDX-License-Identifier: Apache-2.0
+ * Modified for Maestroid: match the fork's packaged Windows app ID.
  */
 
 import type { App } from 'electron';
@@ -16,7 +17,7 @@ import type { App } from 'electron';
  * Squirrel.Windows installers only, so NSIS builds must do it themselves.
  * Consistency with electron-builder.yml is guarded by a unit test.
  */
-export const WINDOWS_APP_USER_MODEL_ID = 'com.aionui.app';
+export const WINDOWS_APP_USER_MODEL_ID = 'io.github.kangdohwa.maestroid';
 
 type AppUserModelIdTarget = Pick<App, 'isPackaged' | 'setAppUserModelId'>;
 

@@ -1,12 +1,20 @@
 {
-  "name": "AionUi",
+  "name": "maestroid",
   "version": "2.2.2",
-  "description": "Transform your command-line AI agent into a modern, efficient AI Chat interface.",
+  "description": "Maestroid, a modified AionUi desktop app for working with AI agents.",
   "keywords": [],
   "license": "Apache-2.0",
   "author": {
-    "name": "AionUi",
-    "email": "service@aionui.com"
+    "name": "KangDohwa",
+    "url": "https://github.com/KangDohwa"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KangDohwa/Maestroid.git"
+  },
+  "homepage": "https://github.com/KangDohwa/Maestroid",
+  "bugs": {
+    "url": "https://github.com/KangDohwa/Maestroid/issues"
   },
   "workspaces": [
     "packages/*"
@@ -268,5 +276,5 @@
   "patchedDependencies": {
     "7zip-bin@5.2.0": "patches/7zip-bin@5.2.0.patch"
   },
-  "productName": "AionUi"
+  "productName": "Maestroid"
 }
