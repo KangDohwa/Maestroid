@@ -20,6 +20,7 @@ import type { SlashCommandItem } from '@/common/chat/slash/types';
 import { useManagedAgentRuntimeCatalog } from '@/renderer/hooks/agent/useManagedAgents';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useCustomAgentsLoader } from './useCustomAgentsLoader';
+import { isAdvancedAssistant } from '@/renderer/utils/model/assistantSelection';
 
 export {
   buildAgentRuntimeModeState,
@@ -102,8 +103,13 @@ function persistGuidAssistantSelectionKey(assistantId: string): void {
 }
 
 export function pickDefaultAssistantSelectionKey(assistants: Assistant[]): string | null {
-  const enabledAssistants = assistants.filter((assistant) => assistant.enabled !== false);
+  const enabledAssistants = assistants.filter(
+    (assistant) => assistant.enabled !== false && !isAdvancedAssistant(assistant)
+  );
   const preferred =
+    enabledAssistants.find(
+      (assistant) => assistant.source === 'generated' && assistantRuntimeKey(assistant) === 'antigravity'
+    ) ??
     enabledAssistants.find((assistant) => assistant.source === 'generated' && isAionrsAssistant(assistant)) ??
     enabledAssistants.find((assistant) => isAionrsAssistant(assistant)) ??
     enabledAssistants[0];

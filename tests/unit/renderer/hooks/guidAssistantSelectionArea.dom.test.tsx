@@ -34,6 +34,46 @@ vi.mock('@arco-design/web-react', async () => {
 });
 
 describe('AssistantSelectionArea', () => {
+  it('keeps Gemini CLI out of the default row but selectable in advanced overflow', async () => {
+    const gemini: Assistant = {
+      ...assistants()[0],
+      id: 'bare-gemini',
+      name: 'Gemini CLI',
+      agent: { type: 'acp', source: 'builtin', acp_backend: 'gemini' },
+    };
+    const onSelectAssistant = vi.fn();
+    render(
+      <AssistantSelectionArea
+        assistants={[...assistants(), gemini]}
+        localeKey='en-US'
+        onSelectAssistant={onSelectAssistant}
+      />
+    );
+    expect(screen.queryByTestId('preset-pill-bare-gemini')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('assistant-more-btn'));
+    fireEvent.click(await screen.findByTestId('assistant-overflow-bare-gemini'));
+    expect(onSelectAssistant).toHaveBeenCalledWith('bare-gemini');
+  });
+
+  it('shows an explicitly selected Gemini assistant without removing its connection metadata', () => {
+    const gemini: Assistant = {
+      ...assistants()[0],
+      id: 'bare-gemini',
+      name: 'Gemini CLI',
+      agent: { type: 'acp', source: 'builtin', acp_backend: 'gemini' },
+    };
+    render(
+      <AssistantSelectionArea
+        selectedAssistantId={gemini.id}
+        assistants={[...assistants(), gemini]}
+        localeKey='en-US'
+        onSelectAssistant={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId('preset-pill-bare-gemini')).toHaveAttribute('data-assistant-selected', 'true');
+    expect(gemini.agent?.acp_backend).toBe('gemini');
+  });
+
   it('maps available width to 4, 3, 2, then 1 visible assistant slots', () => {
     expect(resolveAssistantVisibleLimit(800)).toBe(4);
     expect(resolveAssistantVisibleLimit(680)).toBe(3);

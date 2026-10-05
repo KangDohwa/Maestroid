@@ -15,7 +15,7 @@ import { managedAgentSearchText } from '@/renderer/utils/model/agentTypes';
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { resolveAssistantAvatar } from '@/renderer/utils/model/assistantAvatar';
 import ThemedLogo from '@/renderer/components/agent/ThemedLogo';
-import { selectableAssistants } from '@/renderer/utils/model/assistantSelection';
+import { isAdvancedAssistant, selectableAssistants } from '@/renderer/utils/model/assistantSelection';
 import { useTranslation } from 'react-i18next';
 
 /**
@@ -87,6 +87,10 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
   const enabledAssistants = useMemo(
     () => selectableAssistants(assistants, assistantOrder),
     [assistantOrder, assistants]
+  );
+  const primaryAssistants = useMemo(
+    () => enabledAssistants.filter((assistant) => !isAdvancedAssistant(assistant) || assistant.id === selectedId),
+    [enabledAssistants, selectedId]
   );
 
   useEffect(() => {
@@ -168,17 +172,17 @@ const AssistantSelectionArea: React.FC<AssistantSelectionAreaProps> = ({
   }, []);
 
   const visibleAssistants = useMemo(() => {
-    if (enabledAssistants.length <= visibleLimit || !selectedId) {
-      return enabledAssistants.slice(0, visibleLimit);
+    if (primaryAssistants.length <= visibleLimit || !selectedId) {
+      return primaryAssistants.slice(0, visibleLimit);
     }
 
-    const selectedIndex = enabledAssistants.findIndex((assistant) => assistant.id === selectedId);
+    const selectedIndex = primaryAssistants.findIndex((assistant) => assistant.id === selectedId);
     if (selectedIndex < 0 || selectedIndex < visibleLimit) {
-      return enabledAssistants.slice(0, visibleLimit);
+      return primaryAssistants.slice(0, visibleLimit);
     }
 
-    return [...enabledAssistants.slice(0, visibleLimit - 1), enabledAssistants[selectedIndex]];
-  }, [enabledAssistants, selectedId, visibleLimit]);
+    return [...primaryAssistants.slice(0, visibleLimit - 1), primaryAssistants[selectedIndex]];
+  }, [primaryAssistants, selectedId, visibleLimit]);
 
   useLayoutEffect(() => {
     if (visibleLimit <= 1 || !hasTruncatedAssistantLabels(containerRef.current)) {
