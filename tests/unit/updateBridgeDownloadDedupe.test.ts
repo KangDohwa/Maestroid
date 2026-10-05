@@ -7,6 +7,18 @@
 import fs from 'fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const updateFeedMock = vi.hoisted(() => ({ enabled: true }));
+
+vi.mock('@/process/services/updateFeed', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/process/services/updateFeed')>();
+  return {
+    ...actual,
+    get AUTO_UPDATES_ENABLED() {
+      return updateFeedMock.enabled;
+    },
+  };
+});
+
 vi.mock('@/common/platform/bridge', () => ({
   bridge: {
     buildProvider: vi.fn(() => {
@@ -99,6 +111,7 @@ const getDownloadHandlers = async () => {
 describe('updateBridge manual download dedupe', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    updateFeedMock.enabled = true;
     vi.stubGlobal(
       'fetch',
       vi.fn(() => new Promise<Response>(() => {}))
@@ -109,12 +122,33 @@ describe('updateBridge manual download dedupe', () => {
     vi.unstubAllGlobals();
   });
 
+  it('refuses manual downloads without network traffic when Maestroid updates are disabled', async () => {
+    const actual = await vi.importActual<typeof import('@/process/services/updateFeed')>(
+      '@/process/services/updateFeed'
+    );
+    expect(actual.AUTO_UPDATES_ENABLED).toBe(false);
+    updateFeedMock.enabled = actual.AUTO_UPDATES_ENABLED;
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { download, ipcBridge } = await getDownloadHandlers();
+
+    await expect(
+      download({
+        downloadId: 'disabled-download',
+        url: 'https://github.com/KangDohwa/Maestroid/releases/download/v2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+        file_name: 'Maestroid-2.2.0-mac-arm64.dmg',
+      })
+    ).resolves.toEqual({ success: false });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(ipcBridge.update.downloadProgress.emit).not.toHaveBeenCalled();
+  });
+
   it('reuses the active manual download for the same URL, fallback URL, and file name', async () => {
     const handler = await getDownloadHandler();
     const request = {
-      url: 'https://static.aionui.com/releases/2.2.0/AionUi-2.2.0-mac-arm64.dmg',
-      fallbackUrl: 'https://github.com/iOfficeAI/AionUi/releases/download/v2.2.0/AionUi-2.2.0-mac-arm64.dmg',
-      file_name: 'AionUi-2.2.0-mac-arm64.dmg',
+      url: 'https://github.com/KangDohwa/Maestroid/releases/latest/download/2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+      fallbackUrl: 'https://github.com/KangDohwa/Maestroid/releases/download/v2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+      file_name: 'Maestroid-2.2.0-mac-arm64.dmg',
     };
 
     const first = await handler({
@@ -149,9 +183,9 @@ describe('updateBridge manual download dedupe', () => {
 
     const handler = await getDownloadHandler();
     const request = {
-      url: 'https://static.aionui.com/releases/2.2.0/AionUi-2.2.0-mac-arm64.dmg',
-      fallbackUrl: 'https://github.com/iOfficeAI/AionUi/releases/download/v2.2.0/AionUi-2.2.0-mac-arm64.dmg',
-      file_name: 'AionUi-2.2.0-mac-arm64.dmg',
+      url: 'https://github.com/KangDohwa/Maestroid/releases/latest/download/2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+      fallbackUrl: 'https://github.com/KangDohwa/Maestroid/releases/download/v2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+      file_name: 'Maestroid-2.2.0-mac-arm64.dmg',
     };
 
     const first = await handler({
@@ -193,9 +227,9 @@ describe('updateBridge manual download dedupe', () => {
 
     const { download, cancel, ipcBridge } = await getDownloadHandlers();
     const request = {
-      url: 'https://static.aionui.com/releases/2.2.0/AionUi-2.2.0-mac-arm64.dmg',
-      fallbackUrl: 'https://github.com/iOfficeAI/AionUi/releases/download/v2.2.0/AionUi-2.2.0-mac-arm64.dmg',
-      file_name: 'AionUi-2.2.0-mac-arm64.dmg',
+      url: 'https://github.com/KangDohwa/Maestroid/releases/latest/download/2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+      fallbackUrl: 'https://github.com/KangDohwa/Maestroid/releases/download/v2.2.0/Maestroid-2.2.0-mac-arm64.dmg',
+      file_name: 'Maestroid-2.2.0-mac-arm64.dmg',
     };
 
     const first = await download({

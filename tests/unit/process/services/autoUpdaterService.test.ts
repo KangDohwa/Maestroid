@@ -9,6 +9,9 @@ import { rmSync } from 'fs';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Retain updater lifecycle coverage independently of Maestroid's disabled default.
+const updateFeedMock = vi.hoisted(() => ({ enabled: true }));
+
 const autoUpdaterMock = vi.hoisted(() => ({
   logger: null as unknown,
   autoDownload: true,
@@ -79,6 +82,17 @@ describe('AutoUpdaterService', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    updateFeedMock.enabled = true;
+    // Re-register after resetModules so feed and provider share the same class instance.
+    vi.doMock('@/process/services/updateFeed', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('@/process/services/updateFeed')>();
+      return {
+        ...actual,
+        get AUTO_UPDATES_ENABLED() {
+          return updateFeedMock.enabled;
+        },
+      };
+    });
     setPlatform(originalPlatform);
     autoUpdaterMock.logger = null;
     autoUpdaterMock.autoDownload = true;
@@ -106,13 +120,75 @@ describe('AutoUpdaterService', () => {
     setPlatform(originalPlatform);
   });
 
+  describe('Maestroid updates disabled', () => {
+    beforeEach(async () => {
+      const actual = await vi.importActual<typeof import('@/process/services/updateFeed')>(
+        '@/process/services/updateFeed'
+      );
+      expect(actual.AUTO_UPDATES_ENABLED).toBe(false);
+      updateFeedMock.enabled = actual.AUTO_UPDATES_ENABLED;
+    });
+
+    it.each([false, true])('does not configure the feed or enable debug overrides (packaged=%s)', async (packaged) => {
+      appMock.isPackaged = packaged;
+      process.env.AIONUI_FORCE_DEV_AUTO_UPDATE = '1';
+      process.env.AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION = '2.1.12';
+
+      await import('@/process/services/autoUpdaterService');
+
+      expect(autoUpdaterMock.autoDownload).toBe(false);
+      expect(autoUpdaterMock.autoInstallOnAppQuit).toBe(false);
+      expect(autoUpdaterMock.setFeedURL).not.toHaveBeenCalled();
+      expect(autoUpdaterMock.forceDevUpdateConfig).toBe(false);
+      expect(autoUpdaterMock.currentVersion.version).toBe('2.1.13');
+    });
+
+    it('reports no update and does not restore cached installers', async () => {
+      const { autoUpdaterService } = await import('@/process/services/autoUpdaterService');
+      autoUpdaterService.initialize();
+
+      await expect(autoUpdaterService.checkForUpdates()).resolves.toEqual({ success: true });
+      await expect(autoUpdaterService.restoreDownloadedUpdateIfAvailable()).resolves.toEqual({
+        success: true,
+        data: { ready: false },
+        error: undefined,
+      });
+      expect(autoUpdaterMock.checkForUpdates).not.toHaveBeenCalled();
+      expect(autoUpdaterMock.getOrCreateDownloadHelper).not.toHaveBeenCalled();
+      expect(autoUpdaterMock.downloadUpdate).not.toHaveBeenCalled();
+    });
+
+    it('refuses downloads without invoking the updater', async () => {
+      const { autoUpdaterService } = await import('@/process/services/autoUpdaterService');
+      autoUpdaterService.initialize();
+
+      await expect(autoUpdaterService.downloadUpdate()).resolves.toEqual({ success: false });
+      expect(autoUpdaterMock.downloadUpdate).not.toHaveBeenCalled();
+    });
+
+    it('does not install, quit, or check for startup updates', async () => {
+      const cleanup = vi.fn();
+      const { autoUpdaterService } = await import('@/process/services/autoUpdaterService');
+      autoUpdaterService.initialize();
+      autoUpdaterService.setBeforeQuitAndInstall(cleanup);
+
+      await autoUpdaterService.quitAndInstall();
+      await autoUpdaterService.checkForUpdatesAndNotify();
+
+      expect(cleanup).not.toHaveBeenCalled();
+      expect(autoUpdaterMock.quitAndInstall).not.toHaveBeenCalled();
+      expect(autoUpdaterMock.checkForUpdatesAndNotify).not.toHaveBeenCalled();
+      expect(appMock.exit).not.toHaveBeenCalled();
+    });
+  });
+
   it('does not use the stable CDN updater when prerelease manual mode is enabled', async () => {
     autoUpdaterMock.checkForUpdates.mockResolvedValue({
       isUpdateAvailable: true,
       updateInfo: {
         version: '2.1.14',
-        files: [{ url: 'AionUi-2.1.14-mac-arm64.dmg', sha512: 'sha512-value' }],
-        path: 'AionUi-2.1.14-mac-arm64.dmg',
+        files: [{ url: 'Maestroid-2.1.14-mac-arm64.dmg', sha512: 'sha512-value' }],
+        path: 'Maestroid-2.1.14-mac-arm64.dmg',
         sha512: 'sha512-value',
         releaseDate: '2026-06-08T00:00:00.000Z',
       },
@@ -135,8 +211,8 @@ describe('AutoUpdaterService', () => {
       isUpdateAvailable: true,
       updateInfo: {
         version: '2.1.53',
-        files: [{ url: 'AionUi-2.1.53-mac-arm64.dmg', sha512: 'sha512-value' }],
-        path: 'AionUi-2.1.53-mac-arm64.dmg',
+        files: [{ url: 'Maestroid-2.1.53-mac-arm64.dmg', sha512: 'sha512-value' }],
+        path: 'Maestroid-2.1.53-mac-arm64.dmg',
         sha512: 'sha512-value',
         releaseDate: '2026-06-08T00:00:00.000Z',
       },
@@ -155,8 +231,8 @@ describe('AutoUpdaterService', () => {
     appMock.getVersion.mockReturnValue('2.1.13');
     const updateInfo = {
       version: '2.1.14',
-      files: [{ url: 'AionUi-2.1.14-mac-arm64.dmg', sha512: 'sha512-value' }],
-      path: 'AionUi-2.1.14-mac-arm64.dmg',
+      files: [{ url: 'Maestroid-2.1.14-mac-arm64.dmg', sha512: 'sha512-value' }],
+      path: 'Maestroid-2.1.14-mac-arm64.dmg',
       sha512: 'sha512-value',
       releaseDate: '2026-06-08T00:00:00.000Z',
     };
@@ -178,7 +254,7 @@ describe('AutoUpdaterService', () => {
 
     expect(autoUpdaterMock.setFeedURL).toHaveBeenCalledWith({
       provider: 'custom',
-      url: 'https://static.aionui.com/releases',
+      url: 'https://github.com/KangDohwa/Maestroid/releases/latest/download',
       updateProvider: CdnGenericProvider,
     });
   });
@@ -336,16 +412,16 @@ describe('AutoUpdaterService', () => {
   it('restores a completed cached auto-update when the downloaded package validates', async () => {
     const updateInfo = {
       version: '2.1.14',
-      files: [{ url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' }],
-      path: 'AionUi-2.1.14-mac.zip',
+      files: [{ url: 'Maestroid-2.1.14-mac.zip', sha512: 'sha512-value' }],
+      path: 'Maestroid-2.1.14-mac.zip',
       sha512: 'sha512-value',
       releaseDate: '2026-06-08T00:00:00.000Z',
     };
     const fileInfo = {
-      url: new URL('https://static.aionui.com/releases/2.1.14/AionUi-2.1.14-mac.zip'),
-      info: { url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' },
+      url: new URL('https://github.com/KangDohwa/Maestroid/releases/latest/download/2.1.14/Maestroid-2.1.14-mac.zip'),
+      info: { url: 'Maestroid-2.1.14-mac.zip', sha512: 'sha512-value' },
     };
-    const cachedUpdatePath = path.join('/cache/pending', 'AionUi-2.1.14-mac.zip');
+    const cachedUpdatePath = path.join('/cache/pending', 'Maestroid-2.1.14-mac.zip');
     const validateDownloadedPath = vi.fn().mockResolvedValue(cachedUpdatePath);
 
     autoUpdaterMock.checkForUpdates.mockImplementation(async () => {
@@ -380,14 +456,14 @@ describe('AutoUpdaterService', () => {
   it('does not restore a cached auto-update when the downloaded package is missing or invalid', async () => {
     const updateInfo = {
       version: '2.1.14',
-      files: [{ url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' }],
-      path: 'AionUi-2.1.14-mac.zip',
+      files: [{ url: 'Maestroid-2.1.14-mac.zip', sha512: 'sha512-value' }],
+      path: 'Maestroid-2.1.14-mac.zip',
       sha512: 'sha512-value',
       releaseDate: '2026-06-08T00:00:00.000Z',
     };
     const fileInfo = {
-      url: new URL('https://static.aionui.com/releases/2.1.14/AionUi-2.1.14-mac.zip'),
-      info: { url: 'AionUi-2.1.14-mac.zip', sha512: 'sha512-value' },
+      url: new URL('https://github.com/KangDohwa/Maestroid/releases/latest/download/2.1.14/Maestroid-2.1.14-mac.zip'),
+      info: { url: 'Maestroid-2.1.14-mac.zip', sha512: 'sha512-value' },
     };
     const validateDownloadedPath = vi.fn().mockResolvedValue(null);
 

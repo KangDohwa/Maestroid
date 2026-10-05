@@ -6,6 +6,19 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+// Preserve enabled feed checks while separately asserting Maestroid's disabled default.
+const updateFeedMock = vi.hoisted(() => ({ enabled: true }));
+
+vi.mock('@/process/services/updateFeed', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/process/services/updateFeed')>();
+  return {
+    ...actual,
+    get AUTO_UPDATES_ENABLED() {
+      return updateFeedMock.enabled;
+    },
+  };
+});
+
 vi.mock('@/common/platform/bridge', () => ({
   bridge: {
     buildProvider: vi.fn(() => {
@@ -89,11 +102,11 @@ afterAll(() => {
 
 const CDN_YML = `version: 2.1.45
 files:
-  - url: AionUi-2.1.45-mac-arm64.zip
+  - url: Maestroid-2.1.45-mac-arm64.zip
     size: 100
-  - url: AionUi-2.1.45-mac-arm64.dmg
+  - url: Maestroid-2.1.45-mac-arm64.dmg
     size: 200
-path: AionUi-2.1.45-mac-arm64.zip
+path: Maestroid-2.1.45-mac-arm64.zip
 releaseDate: '2026-07-31T14:45:19.381Z'
 `;
 
@@ -102,7 +115,7 @@ const GITHUB_RELEASES = [
     tag_name: 'v2.1.45',
     name: 'v2.1.45',
     body: 'changelog body',
-    html_url: 'https://github.com/iOfficeAI/AionUi/releases/tag/v2.1.45',
+    html_url: 'https://github.com/KangDohwa/Maestroid/releases/tag/v2.1.45',
     prerelease: false,
     draft: false,
     assets: [],
@@ -128,7 +141,7 @@ type FetchScenario = {
 const stubFetch = (scenario: FetchScenario) => {
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
     const url = String(input);
-    if (url.startsWith('https://static.aionui.com/releases/latest')) {
+    if (url.startsWith('https://github.com/KangDohwa/Maestroid/releases/latest/download/latest')) {
       if (!scenario.cdn) throw new Error('unexpected CDN request');
       return scenario.cdn();
     }
@@ -148,10 +161,27 @@ const jsonResponse = (body: unknown) => new Response(JSON.stringify(body), { sta
 describe('update.check CDN-first', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    updateFeedMock.enabled = true;
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
+  });
+
+  it('reports no update without network traffic when Maestroid updates are disabled', async () => {
+    const actual = await vi.importActual<typeof import('@/process/services/updateFeed')>(
+      '@/process/services/updateFeed'
+    );
+    expect(actual.AUTO_UPDATES_ENABLED).toBe(false);
+    updateFeedMock.enabled = actual.AUTO_UPDATES_ENABLED;
+    const fetchMock = stubFetch({});
+    const handler = await getCheckHandler();
+
+    await expect(handler({ includePrerelease: true })).resolves.toEqual({
+      success: true,
+      data: { currentVersion: '2.1.40', updateAvailable: false },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('reports an update from the CDN manifest and attaches GitHub notes', async () => {
@@ -162,9 +192,9 @@ describe('update.check CDN-first', () => {
     expect(res.data?.updateAvailable).toBe(true);
     expect(res.data?.latest?.version).toBe('2.1.45');
     expect(res.data?.latest?.body).toBe('changelog body');
-    expect(res.data?.latest?.htmlUrl).toBe('https://github.com/iOfficeAI/AionUi/releases/tag/v2.1.45');
+    expect(res.data?.latest?.htmlUrl).toBe('https://github.com/KangDohwa/Maestroid/releases/tag/v2.1.45');
     expect(res.data?.latest?.recommendedAsset?.url).toBe(
-      'https://static.aionui.com/releases/2.1.45/AionUi-2.1.45-mac-arm64.dmg'
+      'https://github.com/KangDohwa/Maestroid/releases/latest/download/2.1.45/Maestroid-2.1.45-mac-arm64.dmg'
     );
   });
 
