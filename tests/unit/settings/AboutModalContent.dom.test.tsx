@@ -5,15 +5,22 @@
  */
 
 import React from 'react';
+import lockupDark from '@renderer/assets/logos/brand/maestroid-lockup-dark.svg';
+import lockupLight from '@renderer/assets/logos/brand/maestroid-lockup-light.svg';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
+  theme: 'light' as 'light' | 'dark',
   quitAndInstallMock: vi.fn(),
   autoUpdateCheckMock: vi.fn(),
   updateCheckMock: vi.fn(),
   messageInfoMock: vi.fn(),
   messageErrorMock: vi.fn(),
+}));
+
+vi.mock('@renderer/hooks/context/ThemeContext', () => ({
+  useThemeContext: () => ({ theme: mocks.theme }),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -67,6 +74,7 @@ import { setUpdateReadyState } from '@/renderer/components/settings/updateReadyS
 
 describe('AboutModalContent update ready state', () => {
   beforeEach(() => {
+    mocks.theme = 'light';
     vi.stubGlobal('__APP_VERSION__', '2.1.13');
     mocks.quitAndInstallMock.mockResolvedValue(undefined);
     mocks.autoUpdateCheckMock.mockResolvedValue({ success: true });
@@ -81,6 +89,16 @@ describe('AboutModalContent update ready state', () => {
     cleanup();
     vi.clearAllMocks();
     vi.unstubAllGlobals();
+  });
+
+  it.each([
+    ['light', lockupLight],
+    ['dark', lockupDark],
+  ] as const)('uses the approved lockup for the %s theme', (theme, expectedLogo) => {
+    mocks.theme = theme;
+    render(<AboutModalContent />);
+
+    expect(screen.getByRole('img', { name: 'login.brand' })).toHaveAttribute('src', expectedLogo);
   });
 
   it('replaces check update with ready-to-install when an update package is ready', async () => {

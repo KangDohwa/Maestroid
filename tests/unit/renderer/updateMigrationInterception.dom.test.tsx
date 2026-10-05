@@ -36,6 +36,10 @@ vi.mock('react-i18next', () => ({
 
 // AboutModalContent pulls in several context/hooks; mock the heavy ones so the
 // component renders in isolation. Keep only what the check-update button needs.
+vi.mock('@renderer/hooks/context/ThemeContext', () => ({
+  useThemeContext: () => ({ theme: 'light' }),
+}));
+
 vi.mock('@/renderer/components/settings/SettingsModal/settingsViewContext', () => ({
   useSettingsViewMode: () => 'modal',
 }));

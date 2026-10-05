@@ -29,6 +29,10 @@ import { MIN_PREVIEW_PANEL_PX } from '@renderer/pages/conversation/utils/layoutC
 import { PreviewPanel } from '@renderer/pages/conversation/Preview';
 import { LayoutContext } from '@renderer/hooks/context/LayoutContext';
 import { NavigationHistoryProvider } from '@renderer/hooks/context/NavigationHistoryContext';
+import { useThemeContext } from '@renderer/hooks/context/ThemeContext';
+import brandIcon from '@renderer/assets/logos/brand/maestroid-icon-32.svg';
+import wordmarkDark from '@renderer/assets/logos/brand/maestroid-wordmark-dark.svg';
+import wordmarkLight from '@renderer/assets/logos/brand/maestroid-wordmark-light.svg';
 import { useDeepLink } from '@renderer/hooks/system/useDeepLink';
 import { useNotificationClick } from '@renderer/hooks/system/notification/useNotificationClick';
 import { useBrowserNotification } from '@renderer/hooks/system/notification/useBrowserNotification';
@@ -144,7 +148,9 @@ const Layout: React.FC<{
     return () => setGlobalNavigate(null);
   }, [navigate]);
   const { t } = useTranslation();
-  // The "AionUi" wordmark acts as Home / Back-to-Chat, but only from settings routes.
+  const { theme } = useThemeContext();
+  const brandWordmark = theme === 'dark' ? wordmarkDark : wordmarkLight;
+  // The Maestroid wordmark acts as Home / Back-to-Chat, but only from settings routes.
   // In non-settings routes the user is already "home", so it is a no-op (and not actionable).
   const isSettingsRoute = location.pathname.startsWith('/settings');
   // Only wired to the wordmark in the isSettingsRoute branch below, so the
@@ -399,38 +405,17 @@ const Layout: React.FC<{
                 )}
               >
                 <div
-                  className={classNames('bg-black shrink-0 size-32px relative rd-0.5rem', {
+                  className={classNames('shrink-0 size-32px', {
                     '!size-24px': collapsed,
                   })}
                   onClick={onClick}
                 >
-                  <svg
-                    className={classNames('w-5.5 h-5.5 absolute inset-0 m-auto', {
-                      'scale-140': !collapsed,
-                    })}
-                    viewBox='0 0 80 80'
-                    fill='none'
-                  >
-                    <path
-                      key='logo-path-1'
-                      d='M40 20 Q38 22 25 40 Q23 42 26 42 L30 42 Q32 40 40 30 Q48 40 50 42 L54 42 Q57 42 55 40 Q42 22 40 20'
-                      fill='white'
-                    ></path>
-                    <circle key='logo-circle' cx='40' cy='46' r='3' fill='white'></circle>
-                    <path
-                      key='logo-path-2'
-                      d='M18 50 Q40 70 62 50'
-                      stroke='white'
-                      strokeWidth='3.5'
-                      fill='none'
-                      strokeLinecap='round'
-                    ></path>
-                  </svg>
+                  <img src={brandIcon} alt={collapsed ? t('login.brand') : ''} className='size-full object-contain' />
                 </div>
                 {isSettingsRoute ? (
                   <Tooltip content={t('common.back', { defaultValue: 'Back to Chat' })} position='bottom'>
                     <div
-                      className='text-16px text-t-primary collapsed-hidden font-semibold cursor-pointer'
+                      className='collapsed-hidden cursor-pointer'
                       role='button'
                       tabIndex={0}
                       aria-label={t('common.back', { defaultValue: 'Back to Chat' })}
@@ -442,11 +427,13 @@ const Layout: React.FC<{
                         }
                       }}
                     >
-                      AionUi
+                      <img src={brandWordmark} alt={t('login.brand')} className='h-32px w-auto object-contain' />
                     </div>
                   </Tooltip>
                 ) : (
-                  <div className='text-16px text-t-primary collapsed-hidden font-semibold'>AionUi</div>
+                  <div className='collapsed-hidden'>
+                    <img src={brandWordmark} alt={t('login.brand')} className='h-32px w-auto object-contain' />
+                  </div>
                 )}
                 {isMobile && !collapsed && (
                   <button
