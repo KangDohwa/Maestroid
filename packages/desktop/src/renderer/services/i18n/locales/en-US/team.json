@@ -101,6 +101,29 @@
     "tellLeaderCta": "Tell the Leader →",
     "tellLeaderPrefill": "Help me add a member good at ___ to the team"
   },
+  "workspace": {
+    "members": "Team members",
+    "memberCount": "{{count}} members",
+    "grid": "Grid view",
+    "list": "Two-line list view",
+    "noMembers": "No teammates yet",
+    "waitingTask": "Waiting for a task",
+    "openConversation": "Open conversation",
+    "memberConversation": "Conversation with {{name}}",
+    "renameMember": "Rename {{name}}",
+    "resizeHint": "Drag to resize. Double-click to reset to 50%.",
+    "status": {
+      "working": "Working",
+      "idle": "Waiting",
+      "error": "Error"
+    }
+  },
+  "runtime": {
+    "fastOn": "Fast ON · applies to the next turn",
+    "fastOff": "Fast OFF · applies to the next turn",
+    "fastUnsupported": "{{service}} does not support Fast",
+    "fastUnavailable": "Fast support could not be confirmed"
+  },
   "view": {
     "label": "View",
     "parallel": "Parallel",

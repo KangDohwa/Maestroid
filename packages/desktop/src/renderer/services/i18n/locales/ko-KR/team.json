@@ -101,6 +101,29 @@
     "tellLeaderCta": "Tell the Leader →",
     "tellLeaderPrefill": "Help me add a member good at ___ to the team"
   },
+  "workspace": {
+    "members": "팀원",
+    "memberCount": "{{count}}명",
+    "grid": "그리드 보기",
+    "list": "2줄 목록 보기",
+    "noMembers": "아직 팀원이 없습니다",
+    "waitingTask": "작업 배정을 기다리는 중",
+    "openConversation": "대화 열기",
+    "memberConversation": "{{name}} 대화",
+    "renameMember": "{{name}} 이름 변경",
+    "resizeHint": "드래그하여 크기 조절. 두 번 클릭하면 50%로 복원합니다.",
+    "status": {
+      "working": "작업 중",
+      "idle": "대기",
+      "error": "오류"
+    }
+  },
+  "runtime": {
+    "fastOn": "Fast ON · 다음 턴부터 적용",
+    "fastOff": "Fast OFF · 다음 턴부터 적용",
+    "fastUnsupported": "{{service}}는 Fast를 지원하지 않습니다",
+    "fastUnavailable": "Fast 지원 여부를 확인할 수 없습니다"
+  },
   "view": {
     "label": "View",
     "parallel": "Parallel",

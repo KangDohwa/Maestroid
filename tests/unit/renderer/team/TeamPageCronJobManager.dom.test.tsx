@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import type { TChatConversation } from '@/common/config/storage';
@@ -52,7 +52,9 @@ vi.mock('@/renderer/hooks/context/LayoutContext', () => ({
 
 vi.mock('@/common', () => ({
   ipcBridge: {
+    runtimeCapabilities: { invoke: vi.fn(async () => ({ backends: [] })) },
     team: {
+      listTasks: { invoke: vi.fn(async () => []) },
       get: { invoke: vi.fn() },
       renameTeam: { invoke: vi.fn() },
       addAgent: { invoke: vi.fn() },
@@ -185,6 +187,7 @@ describe('TeamPage cron job manager', () => {
       </MemoryRouter>
     );
 
+    fireEvent.click(await screen.findByTestId('team-tab-member-slot'));
     expect(await screen.findByTestId('team-cron-job-manager-member-conv')).toBeInTheDocument();
     await waitFor(() =>
       expect(cronJobManagerMock).toHaveBeenCalledWith({
