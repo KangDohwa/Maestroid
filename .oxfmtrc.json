@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["design/**", "docs/research/**"],
   "semi": true,
   "trailingComma": "es5",
   "singleQuote": true,

@@ -1,12 +1,13 @@
-appId: com.aionui.app
-productName: AionUi
-executableName: AionUi
-copyright: Copyright © 2024 AionUi
+# Modified for Maestroid: application identity, protocol, release target and notices.
+appId: io.github.kangdohwa.maestroid
+productName: Maestroid
+executableName: Maestroid
+copyright: Copyright © 2024 AionUi; Maestroid modifications © 2026 KangDohwa
 
 protocols:
-  - name: AionUi Protocol
+  - name: Maestroid Protocol
     schemes:
-      - aionui
+      - maestroid
 
 asar:
   smartUnpack: true
@@ -24,6 +25,8 @@ files:
   # Static resources — use explicit directory inclusion to prevent resource loss
   - public/**/*
   - package.json
+  - LICENSE
+  - NOTICE
   # Native modules and their runtime dependencies
   - node_modules/better-sqlite3/**/*
   - node_modules/bcrypt/**/*
@@ -169,17 +172,17 @@ linux:
   icon: resources/app.png
   artifactName: ${productName}-${version}-${os}-${arch}.${ext}
   category: Utility
-  maintainer: aionui
-  vendor: aionui
+  maintainer: KangDohwa
+  vendor: Maestroid
   synopsis: ${description}
   description: ${description}
   desktop:
     entry:
-      Name: AionUi
+      Name: Maestroid
       Comment: ${description}
-      Icon: AionUi
+      Icon: Maestroid
       Categories: Office;Utility;
-      MimeType: x-scheme-handler/aionui;
+      MimeType: x-scheme-handler/maestroid;
 
 npmRebuild: false
 buildDependenciesFromSource: false
@@ -218,7 +221,7 @@ electronDownload:
 
 publish:
   provider: github
-  owner: iOfficeAI
-  repo: AionUi
-  publishAutoUpdate: true
+  owner: KangDohwa
+  repo: Maestroid
+  publishAutoUpdate: false
   releaseType: release

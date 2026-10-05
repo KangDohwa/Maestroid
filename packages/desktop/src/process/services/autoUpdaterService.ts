@@ -2,6 +2,7 @@
  * @license
  * Copyright 2025 AionUi (aionui.com)
  * SPDX-License-Identifier: Apache-2.0
+ * Modified for Maestroid: disable update checks, downloads and installation.
  */
 
 import { autoUpdater } from 'electron-updater';
@@ -24,7 +25,7 @@ import {
   recordAutoUpdateQuitAndInstall,
   recordAutoUpdateStatus,
 } from './autoUpdateDiagnostics';
-import { buildCdnFeedOptions } from './updateFeed';
+import { AUTO_UPDATES_ENABLED, buildCdnFeedOptions } from './updateFeed';
 
 const FORCE_DEV_AUTO_UPDATE_ENV = 'AIONUI_FORCE_DEV_AUTO_UPDATE';
 const DEBUG_AUTO_UPDATE_CURRENT_VERSION_ENV = 'AIONUI_DEBUG_AUTO_UPDATE_CURRENT_VERSION';
@@ -129,7 +130,8 @@ class AutoUpdaterService extends EventEmitter {
 
     // Disable auto-download for manual control
     autoUpdater.autoDownload = false;
-    autoUpdater.autoInstallOnAppQuit = true;
+    autoUpdater.autoInstallOnAppQuit = AUTO_UPDATES_ENABLED;
+    if (!AUTO_UPDATES_ENABLED) return;
     this.configureDevAutoUpdateDebug();
     const cdnFeedOptions = buildCdnFeedOptions();
 
@@ -198,7 +200,7 @@ class AutoUpdaterService extends EventEmitter {
       const devConfig = [
         'provider: generic',
         `url: ${cdnFeedOptions.url}`,
-        'updaterCacheDirName: com.aionui.app',
+        'updaterCacheDirName: io.github.kangdohwa.maestroid',
         '',
       ].join('\n');
       const configPath = path.join(app.getPath('userData'), 'dev-app-update.yml');
@@ -459,7 +461,7 @@ class AutoUpdaterService extends EventEmitter {
 
   /**
    * In dev mode the running shell is the stock Electron bundle (com.github.Electron),
-   * while the downloaded archive contains the packaged app (com.aionui.app). Squirrel.Mac
+   * while the downloaded archive contains the packaged app (io.github.kangdohwa.maestroid). Squirrel.Mac
    * looks for a bundle matching the *running* id, fails to find it, and reports
    * "Could not locate update bundle". This is expected in dev and cannot be reproduced
    * without a packaged build, so surface a clearer message instead of the raw error.
@@ -604,6 +606,7 @@ class AutoUpdaterService extends EventEmitter {
   }
 
   async checkForUpdates(): Promise<{ success: boolean; updateInfo?: UpdateInfo; error?: string }> {
+    if (!AUTO_UPDATES_ENABLED) return { success: true };
     try {
       if (!this._isInitialized) {
         throw new Error('AutoUpdaterService not initialized');
@@ -789,6 +792,7 @@ class AutoUpdaterService extends EventEmitter {
   }
 
   async downloadUpdate(): Promise<{ success: boolean; error?: string }> {
+    if (!AUTO_UPDATES_ENABLED) return { success: false };
     if (this._activeDownloadPromise) {
       log.debug('[auto-update] downloadUpdate reused active download');
       return this._activeDownloadPromise;
@@ -842,6 +846,7 @@ class AutoUpdaterService extends EventEmitter {
   }
 
   async quitAndInstall(): Promise<void> {
+    if (!AUTO_UPDATES_ENABLED) return;
     await this.waitForNativeInstallReady();
 
     if (this._beforeQuitAndInstallCallback) {
@@ -903,6 +908,7 @@ class AutoUpdaterService extends EventEmitter {
    * Check for updates and notify (for startup)
    */
   async checkForUpdatesAndNotify(): Promise<void> {
+    if (!AUTO_UPDATES_ENABLED) return;
     try {
       // Ensure clean state: prevent stale allowDowngrade=true from prior setAllowPrerelease(true) calls
       autoUpdater.allowDowngrade = false;

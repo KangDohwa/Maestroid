@@ -2,6 +2,7 @@
  * @license
  * Copyright 2025 AionUi (aionui.com)
  * SPDX-License-Identifier: Apache-2.0
+ * Modified for Maestroid: disable manual update traffic and target the fork.
  */
 
 import { ipcBridge } from '@/common';
@@ -24,6 +25,7 @@ import { load as loadYaml } from 'js-yaml';
 import * as path from 'path';
 import semver from 'semver';
 import { autoUpdaterService } from '../services/autoUpdaterService';
+import { AUTO_UPDATES_ENABLED, CDN_UPDATE_BASE_URL } from '../services/updateFeed';
 import { consumeInstallerLastFailure } from '../services/installerLastFailure';
 
 /** Lazily loads i18n to avoid pulling in initStorage chain at module load time */
@@ -60,11 +62,11 @@ interface AutoUpdateCheckParams {
   includePrerelease?: boolean;
 }
 
-const DEFAULT_REPO = 'iOfficeAI/AionUi';
-const DEFAULT_USER_AGENT = 'AionUi';
+const DEFAULT_REPO = 'KangDohwa/Maestroid';
+const DEFAULT_USER_AGENT = 'Maestroid';
 const ALLOWED_ASSET_EXTS = new Set(['.exe', '.msi', '.dmg', '.zip', '.deb', '.rpm']);
-const CDN_HOST = 'static.aionui.com';
-const CDN_BASE_URL = `https://${CDN_HOST}/releases`;
+const CDN_HOST = new URL(CDN_UPDATE_BASE_URL).hostname;
+const CDN_BASE_URL = CDN_UPDATE_BASE_URL;
 const ALLOWED_DOWNLOAD_HOSTS = new Set<string>([
   CDN_HOST,
   'github.com',
@@ -431,7 +433,7 @@ const sanitizeFileName = (name: string): string => {
   // Keep only base name and trim weird whitespace.
   const base = path.basename(name).trim();
   // Avoid empty names.
-  return base || `AionUi-update-${Date.now()}`;
+  return base || `Maestroid-update-${Date.now()}`;
 };
 
 const ensureUniquePath = (target: string): string => {
@@ -674,6 +676,9 @@ export function initUpdateBridge(): void {
 
   ipcBridge.update.check.provider(
     async (params): Promise<{ success: boolean; data?: UpdateCheckResult; msg?: string }> => {
+      if (!AUTO_UPDATES_ENABLED) {
+        return { success: true, data: { currentVersion: app.getVersion(), updateAvailable: false } };
+      }
       try {
         const repo = resolveRepo(params?.repo);
         const currentVersion = app.getVersion();
@@ -724,6 +729,7 @@ export function initUpdateBridge(): void {
 
   ipcBridge.update.download.provider(
     async (params: UpdateDownloadRequest): Promise<{ success: boolean; data?: UpdateDownloadResult; msg?: string }> => {
+      if (!AUTO_UPDATES_ENABLED) return { success: false };
       try {
         if (!params?.url) {
           return { success: false, msg: (await getI18n()).t('update.errors.missingUrl') };

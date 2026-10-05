@@ -2,6 +2,7 @@
  * @license
  * Copyright 2025 AionUi (aionui.com)
  * SPDX-License-Identifier: Apache-2.0
+ * Modified for Maestroid: use the localized fork brand in window titles.
  */
 
 import React, { useEffect } from 'react';
@@ -18,7 +19,7 @@ import { useTranslation } from 'react-i18next';
  * navigation and language switches.
  */
 export function titleForPath(pathname: string, t: (key: string) => string): string {
-  return pathname.startsWith('/login') ? t('login.pageTitle') : 'AionUi';
+  return pathname.startsWith('/login') ? t('login.pageTitle') : t('login.brand');
 }
 
 const DocumentTitle: React.FC = () => {

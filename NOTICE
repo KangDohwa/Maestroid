@@ -1,0 +1,26 @@
+Maestroid
+Copyright 2026 KangDohwa (Maestroid modifications)
+
+Maestroid is a modified derivative of AionUi by iOfficeAI and its
+contributors. The original AionUi copyright, SPDX and attribution notices
+are retained. The original Apache License, Version 2.0 is provided in LICENSE.
+
+AionUi source baseline:
+https://github.com/iOfficeAI/AionUi
+v2.2.2, commit 6744099b279b991c17e31c243f0920477bd31cb6
+
+Maestroid modifications include application and package metadata, installer
+identity, the maestroid URI scheme, isolated desktop/WebUI data directories,
+removal of automatic legacy AionUi data import, disabled update checks and
+installation, and localized application/window titles. Icon and logo assets
+have not been replaced in this initial rebranding pass.
+
+The application retains the unmodified AionCore v0.2.2 backend dependency:
+https://github.com/iOfficeAI/AionCore
+commit 47e66d0d151123e973b3fd1e77afcb5671b3f8c5
+AionCore's root LICENSE contains Apache-2.0, while its Cargo.toml workspace
+metadata declares MIT. This upstream discrepancy is recorded without
+resolving or changing either notice; see docs/UPSTREAM.md.
+
+Original third-party and bundled-resource notices remain applicable.
+This notice does not grant rights to upstream trademarks or third-party assets.
