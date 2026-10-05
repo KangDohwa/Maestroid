@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import type { Assistant } from '@/common/types/agent/assistantTypes';
+import { assistantRuntimeKey, type Assistant } from '@/common/types/agent/assistantTypes';
+
+/** Gemini CLI stays selectable through advanced options and existing records. */
+export const isAdvancedAssistant = (assistant: Assistant): boolean => assistantRuntimeKey(assistant) === 'gemini';
 
 /**
  * Single source of truth for which assistants appear in a *selection* list

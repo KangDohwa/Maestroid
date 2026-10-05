@@ -16,23 +16,26 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 /**
  * Normalize a language code to a supported BCP 47 tag.
- * e.g. 'zh' → 'zh-CN', 'ja_JP' → 'ja-JP'
+ * e.g. 'ko' → 'ko-KR'; disabled languages fall back to English.
  */
 export function normalizeLanguageCode(language: string): SupportedLanguage {
-  const normalized = language.replace(/_/g, '-');
+  const normalized = language.trim().replace(/_/g, '-');
 
   if (SUPPORTED_LANGUAGES.includes(normalized as SupportedLanguage)) {
     return normalized as SupportedLanguage;
   }
 
   const lower = normalized.toLowerCase();
+  const langOnly = lower.split('-')[0];
+  if (!SUPPORTED_LANGUAGES.some((supported) => supported.toLowerCase().split('-')[0] === langOnly)) {
+    return DEFAULT_LANGUAGE;
+  }
   // Traditional-script regions and explicit Hant tags must not degrade to
   // Simplified Chinese: zh-HK / zh-MO / zh-Hant-* readers expect zh-TW.
   if (lower.startsWith('zh')) {
     return /\bhant\b|-hk\b|-mo\b/.test(lower) ? 'zh-TW' : 'zh-CN';
   }
 
-  const langOnly = lower.split('-')[0];
   switch (langOnly) {
     case 'ja':
       return 'ja-JP';
@@ -57,6 +60,14 @@ export function normalizeLanguageCode(language: string): SupportedLanguage {
     default:
       return DEFAULT_LANGUAGE;
   }
+}
+
+/** Preserve a saved preference; otherwise derive the default from the system. */
+export function resolveInitialLanguage(
+  savedLanguage?: string | null,
+  systemLanguage?: string | null
+): SupportedLanguage {
+  return normalizeLanguageCode(savedLanguage || systemLanguage || DEFAULT_LANGUAGE);
 }
 
 export function isPlainObject(value: unknown): value is Record<string, unknown> {

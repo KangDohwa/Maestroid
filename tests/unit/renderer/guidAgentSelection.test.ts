@@ -29,6 +29,27 @@ describe('guid assistant selection helpers', () => {
   it('returns null when no assistants are available', () => {
     expect(pickDefaultAssistantSelectionKey([])).toBeNull();
   });
+
+  it('prefers Antigravity for a new conversation without changing saved Gemini selection', () => {
+    const gemini = assistant({ id: 'bare-gemini', source: 'generated', runtimeKey: 'gemini' });
+    const antigravity = assistant({ id: 'bare-antigravity', source: 'generated', runtimeKey: 'antigravity' });
+    const catalog = [...assistants, gemini, antigravity];
+    expect(pickDefaultAssistantSelectionKey(catalog)).toBe('bare-antigravity');
+    expect(resolveAssistantSelectionKey('bare-gemini', catalog)).toBe('bare-gemini');
+    expect(resolveAssistantSelectionKey('custom:user-research', catalog)).toBe('user-research');
+  });
+
+  it('does not pick Gemini as a default and ignores disabled Antigravity', () => {
+    const gemini = assistant({ id: 'bare-gemini', source: 'generated', runtimeKey: 'gemini' });
+    const disabled = assistant({
+      id: 'bare-antigravity',
+      source: 'generated',
+      runtimeKey: 'antigravity',
+      enabled: false,
+    });
+    expect(pickDefaultAssistantSelectionKey([gemini])).toBeNull();
+    expect(pickDefaultAssistantSelectionKey([...assistants, disabled])).toBe('bare-aionrs');
+  });
 });
 
 function assistant(

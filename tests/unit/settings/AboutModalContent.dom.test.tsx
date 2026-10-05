@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   updateCheckMock: vi.fn(),
   messageInfoMock: vi.fn(),
   messageErrorMock: vi.fn(),
+  openExternalMock: vi.fn(),
 }));
 
 vi.mock('@renderer/hooks/context/ThemeContext', () => ({
@@ -58,7 +59,7 @@ vi.mock('@/common', () => ({
 
 vi.mock('@/renderer/utils/platform', () => ({
   isElectronDesktop: () => true,
-  openExternalUrl: vi.fn(),
+  openExternalUrl: mocks.openExternalMock,
 }));
 
 vi.mock('@/renderer/components/settings/SettingsModal/settingsViewContext', () => ({
@@ -99,6 +100,32 @@ describe('AboutModalContent update ready state', () => {
     render(<AboutModalContent />);
 
     expect(screen.getByRole('img', { name: 'login.brand' })).toHaveAttribute('src', expectedLogo);
+  });
+
+  it('shows version 0.0.1 and prevents update checks during development', () => {
+    vi.stubGlobal('__APP_VERSION__', '0.0.1');
+    render(<AboutModalContent />);
+    expect(screen.getByText('v0.0.1')).toBeInTheDocument();
+    const updateButton = screen.getByRole('button', { name: 'settings.developmentUpdatesDisabled' });
+    expect(updateButton).toBeDisabled();
+    fireEvent.click(updateButton);
+    expect(mocks.updateCheckMock).not.toHaveBeenCalled();
+    expect(screen.getByText('settings.developmentVersionPolicy')).toBeInTheDocument();
+  });
+
+  it('opens only Maestroid documentation, releases, and issue links', () => {
+    mocks.openExternalMock.mockResolvedValue(undefined);
+    render(<AboutModalContent />);
+    fireEvent.click(screen.getByRole('button', { name: 'settings.helpDocumentation' }));
+    fireEvent.click(screen.getByRole('button', { name: 'settings.updateLog' }));
+    fireEvent.click(screen.getByRole('button', { name: 'settings.bugReport' }));
+    expect(mocks.openExternalMock.mock.calls.map(([url]) => url)).toEqual([
+      'https://github.com/KangDohwa/Maestroid/tree/main/docs',
+      'https://github.com/KangDohwa/Maestroid/releases',
+      'https://github.com/KangDohwa/Maestroid/issues/new',
+    ]);
+    expect(screen.queryByText('settings.contactMe')).not.toBeInTheDocument();
+    expect(screen.queryByText('settings.officialWebsite')).not.toBeInTheDocument();
   });
 
   it('replaces check update with ready-to-install when an update package is ready', async () => {
