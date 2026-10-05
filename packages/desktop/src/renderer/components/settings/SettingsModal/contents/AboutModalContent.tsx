@@ -14,7 +14,6 @@ import lockupLight from '@renderer/assets/logos/brand/maestroid-lockup-light.svg
 import { useThemeContext } from '@renderer/hooks/context/ThemeContext';
 import { useSettingsViewMode } from '../settingsViewContext';
 import { isElectronDesktop, openExternalUrl } from '@/renderer/utils/platform';
-import FeedbackReportModal from './FeedbackReportModal';
 import { ipcBridge } from '@/common';
 import { getIncludePrerelease, runUpdateCheck } from '@/renderer/components/settings/checkForUpdatesShared';
 import { UPDATE_AVAILABLE_EVENT } from '@/renderer/components/settings/useUpdateNotificationController';
@@ -43,9 +42,9 @@ const AboutModalContent: React.FC = () => {
   const viewMode = useSettingsViewMode();
   const isPageMode = viewMode === 'page';
   const isElectron = isElectronDesktop();
+  const isDevelopmentVersion = __APP_VERSION__.startsWith('0.0.');
 
   const [includePrerelease, setIncludePrerelease] = useState(false);
-  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [updateReadyState, setLocalUpdateReadyState] = useState<UpdateReadyState>(() => getUpdateReadyState());
   const [checking, setChecking] = useState(false);
 
@@ -70,6 +69,7 @@ const AboutModalContent: React.FC = () => {
   };
 
   const checkUpdate = async () => {
+    if (isDevelopmentVersion) return;
     // Discontinued build: guide to the AionPro website instead of any in-app
     // version detection. Dead-branched out of normal builds by the flag.
     if (IS_DISCONTINUED_BUILD) {
@@ -116,7 +116,7 @@ const AboutModalContent: React.FC = () => {
   const linkItems: LinkItem[] = [
     {
       title: t('settings.helpDocumentation'),
-      url: 'https://github.com/iOfficeAI/AionUi/wiki',
+      url: 'https://github.com/KangDohwa/Maestroid/tree/main/docs',
       icon: <Right theme='outline' size='16' className='rtl-mirror' />,
     },
     {
@@ -126,17 +126,7 @@ const AboutModalContent: React.FC = () => {
     },
     {
       title: t('settings.bugReport'),
-      onClick: () => setShowFeedbackModal(true),
-      icon: <Right theme='outline' size='16' className='rtl-mirror' />,
-    },
-    {
-      title: t('settings.contactMe'),
-      url: 'https://x.com/WailiVery',
-      icon: <Right theme='outline' size='16' className='rtl-mirror' />,
-    },
-    {
-      title: t('settings.officialWebsite'),
-      url: 'https://www.aionui.com',
+      url: 'https://github.com/KangDohwa/Maestroid/issues/new',
       icon: <Right theme='outline' size='16' className='rtl-mirror' />,
     },
   ];
@@ -186,23 +176,33 @@ const AboutModalContent: React.FC = () => {
                   type='primary'
                   long
                   loading={checking || updateReadyState.preparing}
-                  disabled={updateReadyState.preparing}
+                  disabled={isDevelopmentVersion || updateReadyState.preparing}
                   onClick={() => void checkUpdate()}
                 >
-                  {updateReadyState.preparing
-                    ? t('update.preparingInstall')
-                    : updateReadyState.ready
-                      ? t('settings.updateReadyInstall', { version: updateReadyState.version })
-                      : checking
-                        ? t('settings.checkingForUpdates')
-                        : t('settings.checkForUpdates')}
+                  {isDevelopmentVersion
+                    ? t('settings.developmentUpdatesDisabled')
+                    : updateReadyState.preparing
+                      ? t('update.preparingInstall')
+                      : updateReadyState.ready
+                        ? t('settings.updateReadyInstall', { version: updateReadyState.version })
+                        : checking
+                          ? t('settings.checkingForUpdates')
+                          : t('settings.checkForUpdates')}
                 </Button>
                 <div className='flex items-center justify-between w-full'>
                   <Typography.Text className='text-12px text-t-secondary'>
                     {t('settings.includePrereleaseUpdates')}
                   </Typography.Text>
-                  <Switch size='small' checked={includePrerelease} onChange={handlePrereleaseChange} />
+                  <Switch
+                    size='small'
+                    disabled={isDevelopmentVersion}
+                    checked={includePrerelease}
+                    onChange={handlePrereleaseChange}
+                  />
                 </div>
+                <Typography.Text className='text-12px text-t-secondary text-center'>
+                  {t('settings.developmentVersionPolicy')}
+                </Typography.Text>
               </div>
             )}
           </div>
@@ -213,9 +213,11 @@ const AboutModalContent: React.FC = () => {
           {/* Links Section */}
           <div className='flex flex-col gap-4px pt-8px'>
             {linkItems.map((item, index) => (
-              <div
+              <Button
                 key={index}
-                className='flex items-center justify-between px-16px py-12px rd-8px hover:bg-fill-2 transition-all cursor-pointer group'
+                type='text'
+                long
+                className='!flex !h-auto !items-center !justify-between !px-16px !py-12px !rd-8px hover:bg-fill-2 transition-all group'
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -228,12 +230,11 @@ const AboutModalContent: React.FC = () => {
               >
                 <Typography.Text className='text-14px text-t-primary'>{item.title}</Typography.Text>
                 <div className='text-t-secondary group-hover:text-t-primary transition-colors'>{item.icon}</div>
-              </div>
+              </Button>
             ))}
           </div>
         </div>
       </div>
-      <FeedbackReportModal visible={showFeedbackModal} onCancel={() => setShowFeedbackModal(false)} />
     </div>
   );
 };

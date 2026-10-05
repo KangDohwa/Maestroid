@@ -1974,6 +1974,8 @@ export type I18nKey =
   | 'settings.deletePendingSkillTitle'
   | 'settings.delete_preset_confirm'
   | 'settings.devTools'
+  | 'settings.developmentUpdatesDisabled'
+  | 'settings.developmentVersionPolicy'
   | 'settings.dingtalk.agent'
   | 'settings.dingtalk.agentDesc'
   | 'settings.dingtalk.clientId'
