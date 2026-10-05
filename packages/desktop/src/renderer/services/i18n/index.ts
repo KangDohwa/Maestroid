@@ -7,6 +7,7 @@ import i18nConfig from '@/common/config/i18n-config.json';
 import {
   DEFAULT_LANGUAGE,
   normalizeLanguageCode,
+  resolveInitialLanguage,
   mergeWithFallback,
   ensureAndSwitch,
   type LocaleData,
@@ -88,11 +89,11 @@ function getInitialLanguage(): SupportedLanguage {
     typeof window !== 'undefined' && (window as Window & { __backendStartupFailed?: boolean }).__backendStartupFailed;
   const localStorageLanguage = getLocalStorageLanguageHint();
   const injectedLanguage = getInjectedLanguageHint();
-  const systemLanguage = backendStartupFailed ? getElectronSystemLanguageHint() : null;
+  const systemLanguage = getElectronSystemLanguageHint();
   const hint = backendStartupFailed
     ? injectedLanguage || localStorageLanguage || systemLanguage
-    : localStorageLanguage || injectedLanguage;
-  return normalizeLanguageCode(hint || DEFAULT_LANGUAGE);
+    : localStorageLanguage || injectedLanguage || systemLanguage;
+  return resolveInitialLanguage(hint);
 }
 
 async function loadLocaleModules(locale: string): Promise<Record<string, unknown>> {
@@ -122,8 +123,8 @@ if (initialLanguage !== DEFAULT_LANGUAGE) {
 // In WebUI mode the browser's localStorage is on a different origin than the
 // Electron renderer, so the detector would read the wrong (or missing) value
 // and fall back to navigator.language, causing a language mismatch (Issue #1176).
-// Instead, we use localStorage and Electron's injected local config language
-// only as hints for the initial render, then let configService be the source of truth.
+// Persisted and injected language hints take precedence over the system default;
+// configService remains the source of truth once the backend is ready.
 i18n
   .use(initReactI18next)
   .init({
@@ -145,7 +146,7 @@ async function initLanguage(): Promise<void> {
   try {
     await configService.whenReady();
     const savedLanguage = configService.get('language');
-    const language = savedLanguage || normalizeLanguageCode(navigator.language || DEFAULT_LANGUAGE);
+    const language = resolveInitialLanguage(savedLanguage, navigator.language);
     await ensureAndSwitch(i18n, language, loadLocaleModules);
     // Sync to localStorage so next page load can use it as a fast hint
     if (typeof localStorage !== 'undefined') {

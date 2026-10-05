@@ -5,10 +5,12 @@
  */
 
 import i18n from 'i18next';
+import { app } from 'electron';
 import { ProcessConfig } from '@process/utils/initStorage';
 import {
   DEFAULT_LANGUAGE,
   normalizeLanguageCode,
+  resolveInitialLanguage,
   mergeWithFallback,
   ensureAndSwitch,
   type LocaleData,
@@ -71,9 +73,7 @@ export const i18nReady = (async (): Promise<void> => {
   });
 
   const language = await ProcessConfig.get('language');
-  if (language) {
-    await ensureAndSwitch(i18n, language, getLocaleModules);
-  }
+  await ensureAndSwitch(i18n, resolveInitialLanguage(language, app.getLocale()), getLocaleModules);
 })().catch((error) => {
   console.error('[Main Process] Failed to initialize i18n:', error);
 });
@@ -83,9 +83,7 @@ export const i18nReady = (async (): Promise<void> => {
  */
 export async function setInitialLanguage(language: string | undefined): Promise<void> {
   await i18nReady;
-  if (language) {
-    await ensureAndSwitch(i18n, language, getLocaleModules);
-  }
+  await ensureAndSwitch(i18n, resolveInitialLanguage(language, app.getLocale()), getLocaleModules);
 }
 
 /**

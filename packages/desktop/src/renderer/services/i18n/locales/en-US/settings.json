@@ -323,6 +323,8 @@
   "cacheClearSuccess": "Cache cleared successfully",
   "cacheClearFailed": "Failed to clear cache",
   "language": "Language",
+  "languageEnglish": "English",
+  "languageKorean": "Korean",
   "saveUploadToWorkspace": "Save Uploads to Project Folder",
   "startOnBoot": "Start on Boot",
   "startOnBootDesc": "Launch AionUi automatically when you sign in to macOS or Windows.",

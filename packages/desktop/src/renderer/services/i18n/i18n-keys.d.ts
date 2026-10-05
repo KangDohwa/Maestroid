@@ -2077,6 +2077,8 @@ export type I18nKey =
   | 'settings.includePrereleaseUpdates'
   | 'settings.installed'
   | 'settings.language'
+  | 'settings.languageEnglish'
+  | 'settings.languageKorean'
   | 'settings.lark.agent'
   | 'settings.lark.agentDesc'
   | 'settings.lark.appId'

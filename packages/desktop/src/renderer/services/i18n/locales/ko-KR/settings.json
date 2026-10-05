@@ -323,6 +323,8 @@
   "cacheClearSuccess": "캐시가 성공적으로 정리되었습니다",
   "cacheClearFailed": "캐시 정리 실패",
   "language": "언어",
+  "languageEnglish": "??",
+  "languageKorean": "???",
   "saveUploadToWorkspace": "업로드 파일을 프로젝트 폴더에 저장",
   "startOnBoot": "시작 시 자동 실행",
   "startOnBootDesc": "macOS 또는 Windows 로그인 시 AionUi를 자동으로 실행합니다.",
