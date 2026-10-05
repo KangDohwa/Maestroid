@@ -8,18 +8,18 @@ Maestroid는 별도 사용자 Fork인 **Maestroid-Core**를 개발·패키징 �
 
 ## 1. 저장소와 기준 버전
 
-| 항목 | 확인한 값 |
-| --- | --- |
-| UI 작업 경로 | `D:\AionUi-Workspace\Maestroid` |
-| Core 작업 경로 | `D:\AionUi-Workspace\Maestroid-Core` |
-| Core `origin` fetch / push | `https://github.com/KangDohwa/Maestroid-Core` |
-| Core `upstream` fetch | `https://github.com/iOfficeAI/AionCore` |
-| Core `upstream` push | `DISABLED` |
-| Core의 `gh` 기본 저장소 | `KangDohwa/Maestroid-Core` |
-| Core 작업 브랜치 | `chore/maestroid-core-integration` |
-| 작업 브랜치 HEAD / `v0.2.2` | `47e66d0d151123e973b3fd1e77afcb5671b3f8c5` |
-| 사용자 Fork의 `main` | `4a707fc3d3cd1f06a86004745e2c1bbf08b16068` — 변경하지 않음 |
-| UI의 원본 Core pin | 루트 `package.json`의 `aioncoreVersion: v0.2.2` [P1] |
+| 항목                        | 확인한 값                                                  |
+| --------------------------- | ---------------------------------------------------------- |
+| UI 작업 경로                | `D:\AionUi-Workspace\Maestroid`                            |
+| Core 작업 경로              | `D:\AionUi-Workspace\Maestroid-Core`                       |
+| Core `origin` fetch / push  | `https://github.com/KangDohwa/Maestroid-Core`              |
+| Core `upstream` fetch       | `https://github.com/iOfficeAI/AionCore`                    |
+| Core `upstream` push        | `DISABLED`                                                 |
+| Core의 `gh` 기본 저장소     | `KangDohwa/Maestroid-Core`                                 |
+| Core 작업 브랜치            | `chore/maestroid-core-integration`                         |
+| 작업 브랜치 HEAD / `v0.2.2` | `47e66d0d151123e973b3fd1e77afcb5671b3f8c5`                 |
+| 사용자 Fork의 `main`        | `4a707fc3d3cd1f06a86004745e2c1bbf08b16068` — 변경하지 않음 |
+| UI의 원본 Core pin          | 루트 `package.json`의 `aioncoreVersion: v0.2.2` [P1]       |
 
 처음 확인한 Core HEAD는 `main`의 `4a707fc3…`로 UI pin과 달랐다. 최초 조회 시 로컬·Fork 원격에 `v0.2.2` 태그가 없었으며, upstream에는 위 SHA의 태그가 있었다. 태그를 fetch한 뒤 리더 지시에 따라 작업 내용이 없는 브랜치만 `v0.2.2` 기준으로 재생성했다. `main` 리셋, 커밋, 푸시는 수행하지 않았다.
 
@@ -27,12 +27,12 @@ Maestroid는 별도 사용자 Fork인 **Maestroid-Core**를 개발·패키징 �
 
 `git diff v0.2.2 main`은 12개 파일의 차이를 보였다. 주요 차이는 direct CLI 검증 기준 상수, ACP registry 패키지 pin, MiniMax Code 추가와 DB migration `044`, 관련 자산·테스트다. [C1], [C2]
 
-| 영역 | UI 연동에 미치는 소스상 영향 |
-| --- | --- |
-| 팀 DTO·REST route·모델/추론 전송 | diff 대상에 API DTO·route 파일이나 `codex_conn.rs`·`claude_conn.rs` 변경이 없다. 이번 비교에서 UI wire 계약 변경은 확인되지 않았다 |
-| assistant catalog·DB | MiniMax Code 추가로 목록과 내부 metadata/migration이 달라진다. 같은 API 경로라도 catalog 내용까지 같다는 뜻은 아니다 |
-| CLI 검증 기준 | Claude 상수는 `2.1.236` → `2.1.280`, Antigravity는 `1.1.28` → `1.2.14`; Codex `0.151.0`은 동일하다. 이는 upstream 코드의 기준값이며 이번 작업에서 CLI 호환성을 실행 검증한 결과가 아니다 |
-| ACP runtime | registry pin과 factory의 package 선택이 달라 외부 adapter 실행 결과가 달라질 수 있다 |
+| 영역                             | UI 연동에 미치는 소스상 영향                                                                                                                                                             |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 팀 DTO·REST route·모델/추론 전송 | diff 대상에 API DTO·route 파일이나 `codex_conn.rs`·`claude_conn.rs` 변경이 없다. 이번 비교에서 UI wire 계약 변경은 확인되지 않았다                                                       |
+| assistant catalog·DB             | MiniMax Code 추가로 목록과 내부 metadata/migration이 달라진다. 같은 API 경로라도 catalog 내용까지 같다는 뜻은 아니다                                                                     |
+| CLI 검증 기준                    | Claude 상수는 `2.1.236` → `2.1.280`, Antigravity는 `1.1.28` → `1.2.14`; Codex `0.151.0`은 동일하다. 이는 upstream 코드의 기준값이며 이번 작업에서 CLI 호환성을 실행 검증한 결과가 아니다 |
+| ACP runtime                      | registry pin과 factory의 package 선택이 달라 외부 adapter 실행 결과가 달라질 수 있다                                                                                                     |
 
 UI와 Core 조합은 **manifest pin에 맞춘 선택**이다. 소스 비교만으로 실제 API·CLI 실행 호환성을 보장하지 않는다. 또한 `main`에서 만든 데이터베이스를 구버전 Core로 여는 downgrade는 수행하지 않는다.
 
@@ -124,16 +124,16 @@ bun run build-win:x64
 
 ## 5. Core 리브랜딩 범위
 
-| 대상·현재 위치 | 권장 처리 |
-| --- | --- |
-| 저장소명 | `KangDohwa/Maestroid-Core` 사용 — 이번 Git 설정에 반영 |
-| `crates/aionui-app/src/cli.rs`의 CLI about·설명 | 사용자에게 보이는 `AionUi Backend Server` 등은 `Maestroid Core`로 변경할 후보 [C5] |
-| `crates/aionui-app/Cargo.toml`의 `[[bin]] name=aioncore` | 초기 연결은 유지 권장. `maestroid-core`로 바꾸려면 UI resolver, prepare/verify 스크립트, web CLI, release/manual workflow와 도움말을 함께 갱신 [C4], [P5], [P7] |
-| 로그 이름·메시지 | `bootstrap/tracing_init.rs`는 날짜별 `*.aioncore.log`를 쓴다. 바꾸려면 `commands/cmd_diagnose.rs`의 suffix 검색도 함께 변경. launcher의 `[aioncore]` prefix와 진단 문구도 후속 후보 [C7], [P8] |
-| Core update 조회 | `aionui-system/src/version.rs`의 기본 저장소는 `iOfficeAI/AionUi`, User-Agent는 `aioncore`. 조회 저장소는 요청의 `repo` → `AIONUI_GITHUB_REPO` → 기본값 순서로 선택하므로 기존 override를 우선 검토한다. 향후 Maestroid release 정책에 맞춰 설정하거나 비활성화. UI 업데이트를 껐다고 Core endpoint의 기본값까지 바뀌지는 않는다 [C8] |
-| DB·cache·확장 경로 | UI가 전달한 Maestroid data/log/work 경로를 우선 사용. `config.rs`의 `aionui-backend.db` basename은 초기에는 유지해도 부모 경로로 분리 가능. standalone 기본 경로와 legacy fallback은 별도 변경 후보 [C9], [UPSTREAM.md](UPSTREAM.md) |
-| crate/module 이름 `aionui-*` | 첫 연동에는 일괄 변경하지 않는다. Cargo 의존성과 tracing target·내부 API의 광범위한 동시 변경을 피한다 |
-| 저작권·SPDX·원본 LICENSE | 브랜드 치환 대상에서 제외하고 보존 |
+| 대상·현재 위치                                           | 권장 처리                                                                                                                                                                                                                                                                                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 저장소명                                                 | `KangDohwa/Maestroid-Core` 사용 — 이번 Git 설정에 반영                                                                                                                                                                                                                                                                                |
+| `crates/aionui-app/src/cli.rs`의 CLI about·설명          | 사용자에게 보이는 `AionUi Backend Server` 등은 `Maestroid Core`로 변경할 후보 [C5]                                                                                                                                                                                                                                                    |
+| `crates/aionui-app/Cargo.toml`의 `[[bin]] name=aioncore` | 초기 연결은 유지 권장. `maestroid-core`로 바꾸려면 UI resolver, prepare/verify 스크립트, web CLI, release/manual workflow와 도움말을 함께 갱신 [C4], [P5], [P7]                                                                                                                                                                       |
+| 로그 이름·메시지                                         | `bootstrap/tracing_init.rs`는 날짜별 `*.aioncore.log`를 쓴다. 바꾸려면 `commands/cmd_diagnose.rs`의 suffix 검색도 함께 변경. launcher의 `[aioncore]` prefix와 진단 문구도 후속 후보 [C7], [P8]                                                                                                                                        |
+| Core update 조회                                         | `aionui-system/src/version.rs`의 기본 저장소는 `iOfficeAI/AionUi`, User-Agent는 `aioncore`. 조회 저장소는 요청의 `repo` → `AIONUI_GITHUB_REPO` → 기본값 순서로 선택하므로 기존 override를 우선 검토한다. 향후 Maestroid release 정책에 맞춰 설정하거나 비활성화. UI 업데이트를 껐다고 Core endpoint의 기본값까지 바뀌지는 않는다 [C8] |
+| DB·cache·확장 경로                                       | UI가 전달한 Maestroid data/log/work 경로를 우선 사용. `config.rs`의 `aionui-backend.db` basename은 초기에는 유지해도 부모 경로로 분리 가능. standalone 기본 경로와 legacy fallback은 별도 변경 후보 [C9], [UPSTREAM.md](UPSTREAM.md)                                                                                                  |
+| crate/module 이름 `aionui-*`                             | 첫 연동에는 일괄 변경하지 않는다. Cargo 의존성과 tracing target·내부 API의 광범위한 동시 변경을 피한다                                                                                                                                                                                                                                |
+| 저작권·SPDX·원본 LICENSE                                 | 브랜드 치환 대상에서 제외하고 보존                                                                                                                                                                                                                                                                                                    |
 
 ### 유지할 연결·저장 계약
 
@@ -149,29 +149,29 @@ bun run build-win:x64
 
 ### Fast / 멤버별 초기 설정
 
-| Core 경로 | 현재 확인한 처리와 확장 지점 |
-| --- | --- |
-| `crates/aionui-api-types/src/team.rs` | 생성·멤버 추가 DTO. `TeamAgentInputCompat`, `AddAgentRequestCompat`가 unknown field를 거부하며 전용 Fast 필드가 없다. 초기 per-slot override를 받으려면 wire DTO부터 연결 [C11] |
-| `crates/aionui-team/src/provisioning.rs`, `service.rs` | assistant→conversation 구성, 모델 처리, team config option forwarding. 생성·추가·재시작의 멤버 설정 저장과 적용 위치 [C12] |
-| `crates/aionui-app/src/router/team_conversation_adapters.rs` | team conversation port를 일반 conversation service의 config getter/setter로 연결. 두 도메인 경계를 유지 [C13] |
-| `crates/aionui-session/src/backend/types.rs` | `Command::SetConfigOption { option_id, value }` 계약. 새 설정을 capability/catalog과 함께 다루는 위치 [C14] |
-| `crates/aionui-session/src/backend/codex_conn.rs` | dispatch의 generic option 분기는 `effort/reasoning_effort/thought_level`만 처리하며 `thread/settings/update`의 `effort` frame을 만든다. 다른 option은 `CommandNotSupported`. 실제 Fast 계약 확인 뒤 별도 분기·확인·복구 경로 추가 후보 [C15] |
-| `crates/aionui-session/src/backend/claude_conn.rs` | generic option도 effort 계열만 처리하고 `apply_flag_settings` frame을 구성한다. Fast transport는 해당 CLI의 확인된 계약에 맞춰 별도로 설계 [C16] |
-| `crates/aionui-session/src/backend/acp_conn.rs` | 외부 ACP adapter용 연결. 실제 adapter가 광고하는 설정을 기준으로 사용; direct backend와 별도 경로로 취급 |
+| Core 경로                                                    | 현재 확인한 처리와 확장 지점                                                                                                                                                                                                                 |
+| ------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `crates/aionui-api-types/src/team.rs`                        | 생성·멤버 추가 DTO. `TeamAgentInputCompat`, `AddAgentRequestCompat`가 unknown field를 거부하며 전용 Fast 필드가 없다. 초기 per-slot override를 받으려면 wire DTO부터 연결 [C11]                                                              |
+| `crates/aionui-team/src/provisioning.rs`, `service.rs`       | assistant→conversation 구성, 모델 처리, team config option forwarding. 생성·추가·재시작의 멤버 설정 저장과 적용 위치 [C12]                                                                                                                   |
+| `crates/aionui-app/src/router/team_conversation_adapters.rs` | team conversation port를 일반 conversation service의 config getter/setter로 연결. 두 도메인 경계를 유지 [C13]                                                                                                                                |
+| `crates/aionui-session/src/backend/types.rs`                 | `Command::SetConfigOption { option_id, value }` 계약. 새 설정을 capability/catalog과 함께 다루는 위치 [C14]                                                                                                                                  |
+| `crates/aionui-session/src/backend/codex_conn.rs`            | dispatch의 generic option 분기는 `effort/reasoning_effort/thought_level`만 처리하며 `thread/settings/update`의 `effort` frame을 만든다. 다른 option은 `CommandNotSupported`. 실제 Fast 계약 확인 뒤 별도 분기·확인·복구 경로 추가 후보 [C15] |
+| `crates/aionui-session/src/backend/claude_conn.rs`           | generic option도 effort 계열만 처리하고 `apply_flag_settings` frame을 구성한다. Fast transport는 해당 CLI의 확인된 계약에 맞춰 별도로 설계 [C16]                                                                                             |
+| `crates/aionui-session/src/backend/acp_conn.rs`              | 외부 ACP adapter용 연결. 실제 adapter가 광고하는 설정을 기준으로 사용; direct backend와 별도 경로로 취급                                                                                                                                     |
 
 Fast ON/OFF와 reasoning effort는 별도 설정으로 저장한다. 전송 수락, 실제 적용 확인, 다음 턴 적용 대기, 미지원 상태를 구분하고, 복구 시에도 같은 멤버의 선택을 전달하는 방향이다. UI만 켜짐으로 저장하고 실제 Fast 적용으로 표시하지 않는다. 기존 model 저장 경로를 재사용하되 새로운 설정의 영구 저장 정책은 구현 단계에서 정한다.
 
 ### Quota
 
-| Core 경로 | 확장 방향 |
-| --- | --- |
-| `aionui-session/src/backend/codex_conn.rs` | 기존 RPC reader·notification mapping에 공식 quota read/update를 연결할 후보. quota 조사 문서의 `account/rateLimits/read`, `account/rateLimits/updated`를 설치 버전의 공식 schema와 대조한 뒤 사용 |
-| `aionui-session/src/backend/claude_conn.rs` | 원본 CLI stream reader에서 확인된 rate-limit 이벤트를 별도로 수집할 후보. headless에서 statusline이 실행된다고 가정하거나 OAuth usage HTTP를 기본 수집기로 넣지 않는다 |
-| `aionui-session/src/backend/antigravity/` | `conn.rs`·`wire.rs`·`translate.rs`가 연결·출력 처리 위치. 독립 quota 조회가 필요하면 대화 입력과 분리된 collector를 검토. `/usage`의 안정 schema·주간 reset 등은 미확인 |
-| `crates/aionui-session/src/event.rs` | 현재 `UsageDelta`는 token·cost·context 정보다. 계정 quota snapshot과 구분해 새 이벤트/별도 service 입력 계약을 설계 [C17] |
-| `crates/aionui-system/src/` | 계정·provider별 quota cache와 조회 service를 둘 후보. token usage와 별도로 `observedAt`, `fetchedAt`, source, window, nullable 값, 미지원·오래됨 상태를 관리 |
-| `crates/aionui-api-types/src/` | 향후 quota API/WS DTO. provider, 실제 bucket/model, window, reset, 확인된 사용률·잔여량, 상태만 노출. credential·전체 CLI 로그 제외 |
-| `crates/aionui-app/src/services.rs`, `router/state.rs`, `router/routes.rs` | service 생성·주입 및 인증된 route 등록. 기존 system router/state 구조를 따라 연결 [C18] |
+| Core 경로                                                                  | 확장 방향                                                                                                                                                                                         |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aionui-session/src/backend/codex_conn.rs`                                 | 기존 RPC reader·notification mapping에 공식 quota read/update를 연결할 후보. quota 조사 문서의 `account/rateLimits/read`, `account/rateLimits/updated`를 설치 버전의 공식 schema와 대조한 뒤 사용 |
+| `aionui-session/src/backend/claude_conn.rs`                                | 원본 CLI stream reader에서 확인된 rate-limit 이벤트를 별도로 수집할 후보. headless에서 statusline이 실행된다고 가정하거나 OAuth usage HTTP를 기본 수집기로 넣지 않는다                            |
+| `aionui-session/src/backend/antigravity/`                                  | `conn.rs`·`wire.rs`·`translate.rs`가 연결·출력 처리 위치. 독립 quota 조회가 필요하면 대화 입력과 분리된 collector를 검토. `/usage`의 안정 schema·주간 reset 등은 미확인                           |
+| `crates/aionui-session/src/event.rs`                                       | 현재 `UsageDelta`는 token·cost·context 정보다. 계정 quota snapshot과 구분해 새 이벤트/별도 service 입력 계약을 설계 [C17]                                                                         |
+| `crates/aionui-system/src/`                                                | 계정·provider별 quota cache와 조회 service를 둘 후보. token usage와 별도로 `observedAt`, `fetchedAt`, source, window, nullable 값, 미지원·오래됨 상태를 관리                                      |
+| `crates/aionui-api-types/src/`                                             | 향후 quota API/WS DTO. provider, 실제 bucket/model, window, reset, 확인된 사용률·잔여량, 상태만 노출. credential·전체 CLI 로그 제외                                                               |
+| `crates/aionui-app/src/services.rs`, `router/state.rs`, `router/routes.rs` | service 생성·주입 및 인증된 route 등록. 기존 system router/state 구조를 따라 연결 [C18]                                                                                                           |
 
 Core에서 읽은 `codex_conn.rs`는 `thread/tokenUsage/updated`를 `UsageDelta`로 매핑한다. 이것을 남은 5h/7d account quota로 바꿔 계산하지 않는다. Claude의 token/cost 집계도 같은 원칙이다. quota RPC/event의 설치 버전 지원, 전체 초기 snapshot 반환, 실제 인증 계정 응답은 이번 작업에서 확인하지 않았다. [C15], [C17]
 

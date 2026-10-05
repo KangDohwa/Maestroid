@@ -19,12 +19,7 @@ import type {
   TProviderWithModel,
 } from '@/common/config/storage';
 import { ConfigStorage, EnvStorage } from '@/common/config/storage';
-import {
-  ensureDirectory,
-  getConfigPath,
-  getDataPath,
-  hasElectronAppPath,
-} from './utils';
+import { ensureDirectory, getConfigPath, getDataPath, hasElectronAppPath } from './utils';
 import { runLegacyDatabaseMigrations } from '@process/services/database/runLegacyDatabaseMigrations';
 import { BUILTIN_IMAGE_GEN_ID } from '../resources/builtinMcp/constants';
 // Platform and architecture types (moved from deleted updateConfig)

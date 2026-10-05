@@ -3,6 +3,10 @@
   "version": "2.2.2",
   "description": "Maestroid, a modified AionUi desktop app for working with AI agents.",
   "keywords": [],
+  "homepage": "https://github.com/KangDohwa/Maestroid",
+  "bugs": {
+    "url": "https://github.com/KangDohwa/Maestroid/issues"
+  },
   "license": "Apache-2.0",
   "author": {
     "name": "KangDohwa",
@@ -11,10 +15,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/KangDohwa/Maestroid.git"
-  },
-  "homepage": "https://github.com/KangDohwa/Maestroid",
-  "bugs": {
-    "url": "https://github.com/KangDohwa/Maestroid/issues"
   },
   "workspaces": [
     "packages/*"

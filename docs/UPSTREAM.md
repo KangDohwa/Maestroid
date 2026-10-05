@@ -4,16 +4,16 @@
 
 ## 저장소와 버전
 
-| 항목 | 고정 기준 |
-| --- | --- |
-| 사용자 Fork / `origin` | <https://github.com/KangDohwa/Maestroid> |
-| UI 원본 / `upstream` | <https://github.com/iOfficeAI/AionUi> |
-| AionUi 안정 릴리스 | [`v2.2.2`](https://github.com/iOfficeAI/AionUi/releases/tag/v2.2.2) |
+| 항목                       | 고정 기준                                                                                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 사용자 Fork / `origin`     | <https://github.com/KangDohwa/Maestroid>                                                                                                              |
+| UI 원본 / `upstream`       | <https://github.com/iOfficeAI/AionUi>                                                                                                                 |
+| AionUi 안정 릴리스         | [`v2.2.2`](https://github.com/iOfficeAI/AionUi/releases/tag/v2.2.2)                                                                                   |
 | Fork `main`과 UI 기준 커밋 | [`6744099b279b991c17e31c243f0920477bd31cb6`](https://github.com/iOfficeAI/AionUi/commit/6744099b279b991c17e31c243f0920477bd31cb6) — 연결 시 서로 일치 |
-| 작업 브랜치 | `chore/maestroid-rebrand` |
-| AionCore 원본 | <https://github.com/iOfficeAI/AionCore> |
-| 원본 backend pin | `package.json`의 `aioncoreVersion: v0.2.2` 유지 |
-| AionCore 릴리스 커밋 | [`47e66d0d151123e973b3fd1e77afcb5671b3f8c5`](https://github.com/iOfficeAI/AionCore/commit/47e66d0d151123e973b3fd1e77afcb5671b3f8c5) |
+| 작업 브랜치                | `chore/maestroid-rebrand`                                                                                                                             |
+| AionCore 원본              | <https://github.com/iOfficeAI/AionCore>                                                                                                               |
+| 원본 backend pin           | `package.json`의 `aioncoreVersion: v0.2.2` 유지                                                                                                       |
+| AionCore 릴리스 커밋       | [`47e66d0d151123e973b3fd1e77afcb5671b3f8c5`](https://github.com/iOfficeAI/AionCore/commit/47e66d0d151123e973b3fd1e77afcb5671b3f8c5)                   |
 
 UI 릴리스가 명시한 backend pin으로 조합을 선택했다. 설치·빌드·실행으로 호환성을 확인한 결과는 아니다. 기존 조사 문서의 AionCore `main` SHA `4a707fc3d3cd1f06a86004745e2c1bbf08b16068`와 실제 `v0.2.2` 태그 SHA를 구분한다.
 
@@ -29,19 +29,19 @@ UI 릴리스가 명시한 backend pin으로 조합을 선택했다. 설치·빌�
 
 ## 1차 리브랜딩
 
-| 대상 | 변경 |
-| --- | --- |
-| `package.json`, `bun.lock` | package 이름 `maestroid`, 표시명 `Maestroid`, Fork author/repository/homepage/bugs metadata; 버전·의존성·backend pin 유지 |
-| `packages/desktop/electron-builder.yml` | app ID `io.github.kangdohwa.maestroid`, 실행/설치 이름 `Maestroid`, `maestroid` protocol, Linux launcher metadata, GitHub publish `KangDohwa/Maestroid`; auto-update metadata publish 비활성 |
-| `process/startup/windowsAppUserModelId.ts`, `scripts/afterPack.js`, `scripts/build-with-builder.js` | Windows runtime AppUserModelID와 패키징 실행 파일 경로를 같은 Maestroid 식별자로 연결 |
-| `common/platform/index.ts`, `process/utils/configureChromium.ts` | release `Maestroid`, dev `Maestroid-Dev`, multi-instance dev `Maestroid-Dev-2`; storage의 조기 초기화에도 같은 격리 적용; 명시적 E2E sandbox 존중 |
-| `common/platform/NodePlatformServices.ts` | fallback server 디렉터리 `~/.maestroid-server` |
-| `process/utils/utils.ts` | 데이터 하위 디렉터리 `maestroid`, 임시 디렉터리 `maestroid`, macOS symlink `~/.maestroid*` / `~/.maestroid-config*` |
-| `process/utils/initStorage.ts` | 기존 AionUi temp 데이터를 복사·삭제하는 자동 import 제거; 격리된 Maestroid 트리 내부의 backend schema migration은 유지 |
-| `scripts/webui.ts`, `scripts/resetpass.ts`, `packages/web-cli/src/index.ts` | 기본 WebUI 데이터 `~/.maestroid-web`, dev `~/.maestroid-web-dev[-2]`; 명시적 CLI/env override 계약 유지 |
-| `process/utils/deepLink.ts` | `maestroid://` 등록·파싱 |
-| `process/services/updateFeed.ts`, `autoUpdaterService.ts`, `process/bridge/updateBridge.ts` | `AUTO_UPDATES_ENABLED = false`; 자동/수동 검사·다운로드·설치 비활성; 예약 feed와 repo를 Maestroid로 설정 |
-| `renderer/components/layout/DocumentTitle.tsx`, `renderer/index.html`, `public/manifest.webmanifest`, 13개 locale의 `login.json` | 기존 `login.brand` / `login.pageTitle` 키를 재사용해 창·로그인·PWA 표시명을 Maestroid로 설정; 키 추가 없음 |
+| 대상                                                                                                                             | 변경                                                                                                                                                                                         |
+| -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `package.json`, `bun.lock`                                                                                                       | package 이름 `maestroid`, 표시명 `Maestroid`, Fork author/repository/homepage/bugs metadata; 버전·의존성·backend pin 유지                                                                    |
+| `packages/desktop/electron-builder.yml`                                                                                          | app ID `io.github.kangdohwa.maestroid`, 실행/설치 이름 `Maestroid`, `maestroid` protocol, Linux launcher metadata, GitHub publish `KangDohwa/Maestroid`; auto-update metadata publish 비활성 |
+| `process/startup/windowsAppUserModelId.ts`, `scripts/afterPack.js`, `scripts/build-with-builder.js`                              | Windows runtime AppUserModelID와 패키징 실행 파일 경로를 같은 Maestroid 식별자로 연결                                                                                                        |
+| `common/platform/index.ts`, `process/utils/configureChromium.ts`                                                                 | release `Maestroid`, dev `Maestroid-Dev`, multi-instance dev `Maestroid-Dev-2`; storage의 조기 초기화에도 같은 격리 적용; 명시적 E2E sandbox 존중                                            |
+| `common/platform/NodePlatformServices.ts`                                                                                        | fallback server 디렉터리 `~/.maestroid-server`                                                                                                                                               |
+| `process/utils/utils.ts`                                                                                                         | 데이터 하위 디렉터리 `maestroid`, 임시 디렉터리 `maestroid`, macOS symlink `~/.maestroid*` / `~/.maestroid-config*`                                                                          |
+| `process/utils/initStorage.ts`                                                                                                   | 기존 AionUi temp 데이터를 복사·삭제하는 자동 import 제거; 격리된 Maestroid 트리 내부의 backend schema migration은 유지                                                                       |
+| `scripts/webui.ts`, `scripts/resetpass.ts`, `packages/web-cli/src/index.ts`                                                      | 기본 WebUI 데이터 `~/.maestroid-web`, dev `~/.maestroid-web-dev[-2]`; 명시적 CLI/env override 계약 유지                                                                                      |
+| `process/utils/deepLink.ts`                                                                                                      | `maestroid://` 등록·파싱                                                                                                                                                                     |
+| `process/services/updateFeed.ts`, `autoUpdaterService.ts`, `process/bridge/updateBridge.ts`                                      | `AUTO_UPDATES_ENABLED = false`; 자동/수동 검사·다운로드·설치 비활성; 예약 feed와 repo를 Maestroid로 설정                                                                                     |
+| `renderer/components/layout/DocumentTitle.tsx`, `renderer/index.html`, `public/manifest.webmanifest`, 13개 locale의 `login.json` | 기존 `login.brand` / `login.pageTitle` 키를 재사용해 창·로그인·PWA 표시명을 Maestroid로 설정; 키 추가 없음                                                                                   |
 
 표의 `common/`, `process/`, `renderer/`는 `packages/desktop/src/` 아래다. 원저작권 주석, `@aionui/*` workspace import, `AIONUI_*` 환경변수, 내부 IPC/HTTP marker, 격리된 트리 내부의 legacy filename과 backend DB filename은 유지했다. 아이콘·로고 자산은 변경하지 않았다.
 
