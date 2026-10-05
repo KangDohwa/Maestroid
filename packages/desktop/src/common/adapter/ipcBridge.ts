@@ -2249,6 +2249,11 @@ export const realtime = {
   reconnected: wsEmitter<IRealtimeReconnectedEvent>('realtime.reconnected'),
 };
 
+export const runtimeCapabilities = httpGet<
+  { backends: Array<{ backend: string; fast_supported: boolean; reason: string | null }> },
+  void
+>('/api/runtime-capabilities');
+
 export const team = {
   create: withResponseMap(
     httpPost<TTeam, ICreateTeamParams>('/api/teams', (p) => ({

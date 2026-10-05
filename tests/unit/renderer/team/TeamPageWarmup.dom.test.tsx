@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
@@ -73,7 +73,17 @@ vi.mock('@/renderer/hooks/context/LayoutContext', () => ({ useLayoutContext: () 
 
 vi.mock('@/common', () => ({
   ipcBridge: {
+    runtimeCapabilities: {
+      invoke: vi.fn(async () => ({
+        backends: [
+          { backend: 'codex', fast_supported: false, reason: null },
+          { backend: 'claude', fast_supported: false, reason: null },
+        ],
+      })),
+    },
     team: {
+      listTasks: { invoke: vi.fn(async () => []) },
+      renameAgent: { invoke: vi.fn(async () => undefined) },
       get: { invoke: vi.fn() },
       renameTeam: { invoke: vi.fn() },
       addAgent: { invoke: vi.fn() },
@@ -194,6 +204,7 @@ vi.mock('@/renderer/pages/conversation/Preview/context/PreviewContext', () => ({
 
 import { ipcBridge } from '@/common';
 import TeamPage from '@/renderer/pages/team/TeamPage';
+import FastToggle from '@/renderer/pages/team/TeamWorkspace/FastToggle';
 
 describe('TeamPage teammate warmup wiring', () => {
   beforeEach(() => {
@@ -473,7 +484,128 @@ describe('TeamPage teammate warmup wiring', () => {
 
     expect(await screen.findByRole('button', { name: 'team.agentActions.label' })).toBeInTheDocument();
     expect(screen.getByTestId('runtime-restart-leader-conv')).toBeInTheDocument();
-    expect(screen.queryByTestId('acp-model-selector-member-conv')).not.toBeInTheDocument();
+    expect(screen.getByTestId('acp-model-selector-member-conv')).toBeInTheDocument();
+  });
+
+  it('mounts only the leader transcript until a teammate is opened, then unmounts it when closed', async () => {
+    const user = userEvent.setup();
+    ensureSessionMock.mockResolvedValue(undefined);
+    render(
+      <MemoryRouter>
+        <TeamPage team={team()} />
+      </MemoryRouter>
+    );
+    await screen.findByTestId('team-chat-view-leader-conv');
+    expect(screen.queryByTestId('team-chat-view-member-conv')).not.toBeInTheDocument();
+    await user.click(
+      within(screen.getByTestId('team-member-card-member-slot')).getByRole('button', { name: 'Member' })
+    );
+    expect(await screen.findByTestId('team-chat-view-member-conv')).toBeInTheDocument();
+    expect(screen.getByTestId('team-chat-view-leader-conv')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'common.close' }));
+    expect(screen.queryByTestId('team-chat-view-member-conv')).not.toBeInTheDocument();
+  });
+
+  it('keeps ready idle members waiting and lights the card only for actual work', async () => {
+    ensureSessionMock.mockResolvedValue(undefined);
+    render(
+      <MemoryRouter>
+        <TeamPage team={team()} />
+      </MemoryRouter>
+    );
+    const card = await screen.findByTestId('team-member-card-member-slot');
+    act(() => {
+      for (const handler of teamEventHandlers.agentRuntimeStatusChanged ?? [])
+        handler({ team_id: 'team-1', slot_id: 'member-slot', conversation_id: 'member-conv', status: 'ready' });
+    });
+    expect(card).toHaveAttribute('data-work-state', 'idle');
+    act(() => {
+      for (const handler of teamEventHandlers.agentStatusChanged ?? [])
+        handler({ team_id: 'team-1', slot_id: 'member-slot', status: 'working', last_message: 'Reviewing the patch' });
+    });
+    expect(card).toHaveAttribute('data-work-state', 'working');
+    expect(within(card).getByRole('button', { name: 'Reviewing the patch' })).toBeInTheDocument();
+    act(() => {
+      for (const handler of teamEventHandlers.agentStatusChanged ?? [])
+        handler({ team_id: 'team-1', slot_id: 'member-slot', status: 'idle' });
+    });
+    expect(card).toHaveAttribute('data-work-state', 'idle');
+  });
+
+  it('switches to a persistent two-line member list and renames through the existing team API', async () => {
+    const user = userEvent.setup();
+    ensureSessionMock.mockResolvedValue(undefined);
+    render(
+      <MemoryRouter>
+        <TeamPage team={team()} />
+      </MemoryRouter>
+    );
+    await user.click(await screen.findByRole('button', { name: 'team.workspace.list' }));
+    expect(localStorage.getItem('team-members-view-team-1')).toBe('list');
+    const card = screen.getByTestId('team-member-card-member-slot');
+    await user.click(within(card).getByRole('button', { name: 'team.workspace.renameMember' }));
+    const input = within(card).getByRole('textbox', { name: 'team.sider.rename' });
+    await user.clear(input);
+    await user.type(input, 'Reviewer');
+    expect(input).toHaveValue('Reviewer');
+    await user.keyboard('{Enter}');
+    await waitFor(() =>
+      expect(ipcBridge.team.renameAgent.invoke).toHaveBeenCalledWith({
+        team_id: 'team-1',
+        slot_id: 'member-slot',
+        new_name: 'Reviewer',
+      })
+    );
+  });
+
+  it('drags the leader split and resets its width to 50% on double-click', async () => {
+    const measure = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      width: 1000,
+      height: 800,
+      x: 0,
+      y: 0,
+      top: 0,
+      right: 1000,
+      bottom: 800,
+      left: 0,
+      toJSON: () => ({}),
+    });
+    const offset = vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1000);
+    try {
+      ensureSessionMock.mockResolvedValue(undefined);
+      render(
+        <MemoryRouter>
+          <TeamPage team={team()} />
+        </MemoryRouter>
+      );
+      const splitter = await screen.findByRole('separator', { name: 'team.workspace.resizeHint' });
+      expect(splitter).toHaveAttribute('aria-valuenow', '50');
+      fireEvent.mouseDown(splitter, { clientX: 500 });
+      fireEvent.mouseMove(window, { clientX: 650 });
+      fireEvent.mouseUp(window);
+      expect(splitter).toHaveAttribute('aria-valuenow', '65');
+      fireEvent.doubleClick(splitter);
+      expect(splitter).toHaveAttribute('aria-valuenow', '50');
+    } finally {
+      measure.mockRestore();
+      offset.mockRestore();
+    }
+  });
+
+  it('shows unsupported Fast as a disabled OFF icon and toggles supported Fast', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <FastToggle backend='claude' supported={false} capabilityKnown value onChange={onChange} />
+    );
+    const unsupported = screen.getByRole('button', { name: 'team.runtime.fastUnsupported' });
+    expect(unsupported).toBeDisabled();
+    expect(unsupported).toHaveAttribute('data-fast-state', 'off');
+    await user.click(unsupported);
+    expect(onChange).not.toHaveBeenCalled();
+    rerender(<FastToggle backend='codex' supported capabilityKnown value={false} onChange={onChange} />);
+    await user.click(screen.getByRole('button', { name: 'team.runtime.fastOff' }));
+    expect(onChange).toHaveBeenCalledWith(true);
   });
 });
 
